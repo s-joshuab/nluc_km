@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 class CollegeSeeder extends Seeder {
     public function run(): void {
         $rows = [
-            ['name'=>'College of Education','code'=>'CED','description'=>'NLUC College of Education'],
+            ['name'=>'College of Education','code'=>'CE','description'=>'NLUC College of Education'],
             ['name'=>'College of Information Systems','code'=>'CIS','description'=>'NLUC College of Information Systems'],
             ['name'=>'College of Agricultural and Biosystems Engineering','code'=>'CABE','description'=>'NLUC CABE'],
             ['name'=>'College of Agribusiness Management','code'=>'CABM','description'=>'NLUC CABM'],

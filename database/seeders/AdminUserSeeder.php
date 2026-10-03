@@ -12,7 +12,7 @@ class AdminUserSeeder extends Seeder {
         $users = [
             ['email'=>'admin@nluc.dmmmsu.edu.ph','first_name'=>'RPSU','last_name'=>'Administrator','employee_number'=>'NLUC-ADMIN-001','role'=>'RPSU Administrator','office'=>'RPSU','college'=>'CIS'],
             ['email'=>'staff@nluc.dmmmsu.edu.ph','first_name'=>'RPSU','last_name'=>'Staff','employee_number'=>'NLUC-STAFF-001','role'=>'RPSU Staff','office'=>'RPSU','college'=>null],
-            ['email'=>'facilitator@nluc.dmmmsu.edu.ph','first_name'=>'Research','last_name'=>'Facilitator','employee_number'=>'NLUC-FAC-001','role'=>'Research & Publication Facilitator','office'=>'RPSU','college'=>'CED'],
+            ['email'=>'facilitator@nluc.dmmmsu.edu.ph','first_name'=>'Research','last_name'=>'Facilitator','employee_number'=>'NLUC-FAC-001','role'=>'Research & Publication Facilitator','office'=>'RPSU','college'=>'CE'],
             ['email'=>'researcher@nluc.dmmmsu.edu.ph','first_name'=>'Juan','last_name'=>'Researcher','employee_number'=>'NLUC-RES-001','role'=>'Researcher','office'=>null,'college'=>'CA'],
         ];
         foreach ($users as $u) {

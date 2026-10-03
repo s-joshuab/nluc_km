@@ -1,58 +1,162 @@
 import AuthenticatedLayout from '../../Layouts/AuthenticatedLayout';
 import DashboardCard from '../../Components/DashboardCard';
 import StatusBadge from '../../Components/StatusBadge';
+import { Link } from '@inertiajs/react';
+
+function SectionCard({ title, icon, children, action }) {
+  return (
+    <div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-50">
+        <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+          {icon}
+          {title}
+        </div>
+        {action}
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function Stat({ label, value, color = 'text-slate-800' }) {
+  return (
+    <div className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+      <span className="text-sm text-slate-600">{label}</span>
+      <span className={`font-bold text-sm ${color}`}>{value}</span>
+    </div>
+  );
+}
+
+function BarRow({ label, value, max }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <span className="text-xs text-slate-600 w-24 shrink-0 truncate" title={label}>{label}</span>
+      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+        <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs font-semibold text-slate-700 w-5 text-right">{value}</span>
+    </div>
+  );
+}
+
 export default function Index({ stats, byCollege, byStatus, byType, byYear, endorseByStatus, my, recentResearch, notifications, records, myRoles }) {
-  const isRecordsOnly = myRoles?.length === 1 && myRoles[0] === 'RPSU Staff';
+  const maxCollege = Math.max(...(byCollege || []).map(c => c.total), 1);
+  const maxStatus  = Math.max(...(byStatus  || []).map(s => s.total), 1);
+  const maxType    = Math.max(...(byType    || []).map(s => s.total), 1);
+  const maxEndorse = Math.max(...(endorseByStatus || []).map(s => s.total), 1);
+
   return (
     <AuthenticatedLayout header="Dashboard">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <DashboardCard label="Total Research" value={stats.totalResearch} href="/repository" />
-        <DashboardCard label="Ongoing" value={stats.ongoing} />
-        <DashboardCard label="Completed" value={stats.completed} />
-        <DashboardCard label="Published" value={stats.published} />
-        <DashboardCard label="Pending Endorsements" value={stats.pendingEndorsements} href="/endorsements" />
-        <DashboardCard label="QR Received" value={stats.st_QRReceived ?? 0} />
-        <DashboardCard label="Under Processing" value={stats.st_UnderProcessing ?? 0} />
-        <DashboardCard label="QR Released" value={stats.st_QRRelease ?? 0} />
-        <DashboardCard label="Forwarded to RECI" value={stats.st_ForwardedEndorsedtoRECI ?? 0} />
-        <DashboardCard label="Completed / Closed" value={stats.st_CompletedClosed ?? 0} />
-        <DashboardCard label="Publications" value={stats.publications} href="/publications" />
-        <DashboardCard label="IEC Materials" value={stats.iec} href="/iec-materials" />
-        <DashboardCard label="Innovations" value={stats.innovations} href="/innovations" />
-        <DashboardCard label="Commercialized" value={stats.commercialized} href="/commercialization" />
-        <DashboardCard label="Pending Access Requests" value={stats.pendingAccess} href="/access-requests" />
+      {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
+      <div className="mb-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Research Overview</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <DashboardCard label="Total Research" value={stats.totalResearch} href="/repository" />
+          <DashboardCard label="Ongoing" value={stats.ongoing} />
+          <DashboardCard label="Completed" value={stats.completed} />
+          <DashboardCard label="Published" value={stats.published} />
+        </div>
       </div>
+
+      <div className="mt-4 mb-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Endorsement Workflow</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <DashboardCard label="Pending Endorsements" value={stats.pendingEndorsements} href="/endorsements" />
+          <DashboardCard label="QR Received"         value={stats.st_QRReceived ?? 0} />
+          <DashboardCard label="Under Processing"    value={stats.st_UnderProcessing ?? 0} />
+          <DashboardCard label="QR Released"         value={stats.st_QRRelease ?? 0} />
+          <DashboardCard label="Forwarded to RECI"   value={stats.st_ForwardedEndorsedtoRECI ?? 0} />
+        </div>
+      </div>
+
+      <div className="mt-4 mb-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Knowledge Assets</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <DashboardCard label="Publications"            value={stats.publications}   href="/publications" />
+          <DashboardCard label="IEC Materials"           value={stats.iec}            href="/iec-materials" />
+          <DashboardCard label="Innovations"             value={stats.innovations}    href="/innovations" />
+          <DashboardCard label="Commercialized"          value={stats.commercialized} href="/commercialization" />
+        </div>
+      </div>
+
+      {/* ── SUMMARY PANELS ────────────────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white border rounded p-4">
-          <h3 className="font-semibold text-sm mb-2">My Summary</h3>
-          <div className="text-sm space-y-1 text-gray-700">
-            <div>My Research: <b>{my.research}</b></div>
-            <div>My Transactions: <b>{my.transactions}</b></div>
-            <div>Pending: <b>{my.pending}</b></div>
-            <div>Bookmarks: <b>{my.bookmarks}</b></div>
+        {/* My Summary */}
+        <SectionCard
+          title="My Summary"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-emerald-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
+          action={<Link href="/my-research" className="text-xs text-emerald-600 hover:underline">View →</Link>}
+        >
+          <Stat label="My Research"    value={my.research} />
+          <Stat label="My Transactions" value={my.transactions} />
+          <Stat label="Pending"        value={my.pending} color="text-amber-600" />
+          <Stat label="Bookmarks"      value={my.bookmarks} color="text-blue-600" />
+        </SectionCard>
+
+        {/* Records Office */}
+        <SectionCard
+          title="Records Office Queues"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-violet-600"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/></svg>}
+        >
+          <Stat label="Awaiting QR Received" value={records.awaitingReceived} color="text-amber-600" />
+          <Stat label="QR Received Today"    value={records.receivedToday} color="text-emerald-700" />
+          <Stat label="Awaiting QR Release"  value={records.awaitingRelease} color="text-amber-600" />
+          <Stat label="QR Released Today"    value={records.releasedToday} color="text-emerald-700" />
+        </SectionCard>
+
+        {/* Recent Research */}
+        <SectionCard
+          title="Recent Research"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-blue-600"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+          action={<Link href="/repository" className="text-xs text-emerald-600 hover:underline">All →</Link>}
+        >
+          <div className="space-y-2.5">
+            {recentResearch.map(r => (
+              <a key={r.id} href={`/repository/${r.id}`} className="flex items-start gap-2 group hover:bg-slate-50 -mx-1 px-1 py-0.5 rounded-lg transition-colors">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-slate-700 truncate group-hover:text-emerald-700 transition-colors">{r.title}</div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10px] text-slate-400">{r.research_code}</span>
+                    <StatusBadge value={r.status} />
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
-        </div>
-        <div className="bg-white border rounded p-4">
-          <h3 className="font-semibold text-sm mb-2">Records Office Queues</h3>
-          <div className="text-sm space-y-1 text-gray-700">
-            <div>Awaiting QR Received: <b>{records.awaitingReceived}</b></div>
-            <div>QR Received Today: <b>{records.receivedToday}</b></div>
-            <div>Awaiting QR Release: <b>{records.awaitingRelease}</b></div>
-            <div>QR Released Today: <b>{records.releasedToday}</b></div>
-          </div>
-        </div>
-        <div className="bg-white border rounded p-4">
-          <h3 className="font-semibold text-sm mb-2">Recent Research</h3>
-          <div className="space-y-2">{recentResearch.map(r => (
-            <a key={r.id} href={`/repository/${r.id}`} className="block text-sm"><span className="font-medium">{r.research_code}</span> — {r.title} <StatusBadge value={r.status} /></a>
-          ))}</div>
-        </div>
+        </SectionCard>
       </div>
-      <div className="grid md:grid-cols-4 gap-4 mt-4">
-        <div className="bg-white border rounded p-4"><h3 className="font-semibold text-sm mb-2">Research by College</h3>{byCollege.map(c => <div key={c.code} className="text-sm flex justify-between"><span>{c.code || c.name}</span><b>{c.total}</b></div>)}</div>
-        <div className="bg-white border rounded p-4"><h3 className="font-semibold text-sm mb-2">Research by Status</h3>{byStatus.map(s => <div key={s.name} className="text-sm flex justify-between"><span>{s.name}</span><b>{s.total}</b></div>)}</div>
-        <div className="bg-white border rounded p-4"><h3 className="font-semibold text-sm mb-2">Research by Type</h3>{byType.map(s => <div key={s.name} className="text-sm flex justify-between"><span>{s.name}</span><b>{s.total}</b></div>)}</div>
-        <div className="bg-white border rounded p-4"><h3 className="font-semibold text-sm mb-2">Endorsements by Status</h3>{endorseByStatus.map(s => <div key={s.name} className="text-sm flex justify-between"><span>{s.name}</span><b>{s.total}</b></div>)}</div>
+
+      {/* ── BREAKDOWN CHARTS ──────────────────────────────────────────── */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        <SectionCard
+          title="By College"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-teal-600"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>}
+        >
+          {byCollege.map(c => <BarRow key={c.code} label={c.code || c.name} value={c.total} max={maxCollege} />)}
+        </SectionCard>
+
+        <SectionCard
+          title="By Status"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-amber-600"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+        >
+          {byStatus.map(s => <BarRow key={s.name} label={s.name} value={s.total} max={maxStatus} />)}
+        </SectionCard>
+
+        <SectionCard
+          title="By Type"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-indigo-600"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>}
+        >
+          {byType.map(s => <BarRow key={s.name} label={s.name} value={s.total} max={maxType} />)}
+        </SectionCard>
+
+        <SectionCard
+          title="Endorsements by Status"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-emerald-600"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>}
+        >
+          {endorseByStatus.map(s => <BarRow key={s.name} label={s.name} value={s.total} max={maxEndorse} />)}
+        </SectionCard>
       </div>
     </AuthenticatedLayout>
   );
