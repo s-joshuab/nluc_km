@@ -19,12 +19,11 @@ class DashboardController extends Controller {
         $stats['iec'] = DB::table('iec_materials')->whereNull('deleted_at')->count();
         $stats['innovations'] = DB::table('innovations')->whereNull('deleted_at')->count();
         $stats['commercialized'] = DB::table('commercialization_records as c')->join('commercialization_statuses as s','s.id','=','c.status_id')->where('s.name','Commercialized')->count();
-        $stats['pendingAccess'] = DB::table('access_requests as a')->join('access_request_statuses as s','s.id','=','a.status_id')->where('s.name','Pending')->count();
-        foreach (['Endorsed / Submitted','QR Received','Received by RPSU','Under Processing','For Release','QR Release','Forwarded / Endorsed to RECI','Completed / Closed'] as $st) {
+        foreach (['Endorsed / Submitted','Received by RPSU','Under Processing','For Review','For Release','Forwarded / Endorsed to RECI','Completed / Closed'] as $st) {
             $key = preg_replace('/[^A-Za-z0-9]+/','', $st);
             $stats['st_'.$key] = DB::table('endorsements as e')->join('workflow_statuses as s','s.id','=','e.current_status_id')->where('s.name',$st)->count();
         }
-        $stats['pendingEndorsements'] = ($stats['st_EndorsedSubmitted'] ?? 0) + ($stats['st_QRReceived'] ?? 0);
+        $stats['newlySubmitted'] = $stats['st_EndorsedSubmitted'] ?? 0;
         $byCollege = DB::table('researches as r')->leftJoin('colleges as c','c.id','=','r.college_id')->select('c.code','c.name',DB::raw('COUNT(r.id) as total'))->whereNull('r.deleted_at')->groupBy('c.id','c.code','c.name')->orderByDesc('total')->get();
         $byStatus = DB::table('researches as r')->join('research_statuses as s','s.id','=','r.research_status_id')->select('s.name',DB::raw('COUNT(r.id) as total'))->whereNull('r.deleted_at')->groupBy('s.name')->get();
         $byType = DB::table('researches as r')->join('research_types as t','t.id','=','r.research_type_id')->select('t.name',DB::raw('COUNT(r.id) as total'))->whereNull('r.deleted_at')->groupBy('t.name')->get();
@@ -37,16 +36,20 @@ class DashboardController extends Controller {
         $myBookmarks = DB::table('bookmarks')->where('user_id',$u->id)->count();
         $recentResearch = DB::table('researches as r')->leftJoin('colleges as c','c.id','=','r.college_id')->leftJoin('research_statuses as s','s.id','=','r.research_status_id')->select('r.id','r.research_code','r.title','c.code as college','s.name as status','r.created_at')->whereNull('r.deleted_at')->orderByDesc('r.id')->limit(5)->get();
         $myNotifs = DB::table('notifications')->where('user_id',$u->id)->orderByDesc('id')->limit(5)->get();
-        // Records office queues
-        $awaitingReceived = DB::table('endorsements as e')->join('workflow_statuses as s','s.id','=','e.current_status_id')->where('s.name','Endorsed / Submitted')->count();
-        $receivedToday = DB::table('endorsement_qr_transactions as t')->join('qr_transaction_types as ty','ty.id','=','t.transaction_type_id')->where('ty.name','QR Received')->whereDate('t.transaction_date', now()->toDateString())->count();
-        $awaitingRelease = DB::table('endorsements as e')->join('workflow_statuses as s','s.id','=','e.current_status_id')->where('s.name','For Release')->count();
-        $releasedToday = DB::table('endorsement_qr_transactions as t')->join('qr_transaction_types as ty','ty.id','=','t.transaction_type_id')->where('ty.name','QR Release')->whereDate('t.transaction_date', now()->toDateString())->count();
+        // Document tracking snapshot (by status — QR is manual at the Records Office)
+        $tracking = [
+            'newSubmitted' => $stats['st_EndorsedSubmitted'] ?? 0,
+            'received' => $stats['st_ReceivedbyRPSU'] ?? 0,
+            'processing' => $stats['st_UnderProcessing'] ?? 0,
+            'forRelease' => $stats['st_ForRelease'] ?? 0,
+            'forwarded' => $stats['st_ForwardedEndorsedtoRECI'] ?? 0,
+            'completed' => $stats['st_CompletedClosed'] ?? 0,
+        ];
         return Inertia::render('Dashboard/Index', [
             'stats'=>$stats,'byCollege'=>$byCollege,'byStatus'=>$byStatus,'byType'=>$byType,'byYear'=>$byYear,'endorseByStatus'=>$endorseByStatus,
             'my'=>['research'=>$myResearch,'transactions'=>$myTx,'pending'=>$myPending,'bookmarks'=>$myBookmarks],
             'recentResearch'=>$recentResearch,'notifications'=>$myNotifs,
-            'records'=>['awaitingReceived'=>$awaitingReceived,'receivedToday'=>$receivedToday,'awaitingRelease'=>$awaitingRelease,'releasedToday'=>$releasedToday],
+            'tracking'=>$tracking,
             'myRoles'=>$roles,
         ]);
     }

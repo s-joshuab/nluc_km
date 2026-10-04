@@ -8,7 +8,7 @@ class ReportService {
             ->leftJoin('research_types as rt','rt.id','=','r.research_type_id')
             ->leftJoin('research_statuses as rs','rs.id','=','r.research_status_id')
             ->leftJoin('users as u','u.id','=','r.lead_researcher_id')
-            ->select('r.id','r.research_code','r.title','c.name as college','rt.name as type','rs.name as status','r.sdg_alignment','r.date_submitted','r.date_completed',DB::raw("CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) as lead"));
+            ->select('r.id','r.research_code','r.title','c.name as college','rt.name as type','rs.name as status','r.sdg_alignment','r.date_submitted','r.date_completed',DB::raw("CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) as lead_researcher"));
         if (!empty($f['college_id'])) $q->where('r.college_id',$f['college_id']);
         if (!empty($f['research_type_id'])) $q->where('r.research_type_id',$f['research_type_id']);
         if (!empty($f['research_status_id'])) $q->where('r.research_status_id',$f['research_status_id']);

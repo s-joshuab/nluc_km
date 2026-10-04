@@ -76,4 +76,27 @@ class AdminOnlyUserManagementTest extends TestCase
             $this->actingAs($admin)->get($url)->assertOk();
         }
     }
+
+    public function test_reports_hub_renders_all_tabs(): void
+    {
+        $admin = $this->makeUser('t.admin3@x.test', 'RPSU Administrator');
+        $staff = $this->makeUser('t.staff3@x.test', 'RPSU Staff');
+        foreach (['research','publications','iec','innovations','commercialization','endorsements'] as $tab) {
+            $this->actingAs($admin)->get("/reports?tab={$tab}")->assertOk();
+        }
+        $this->actingAs($staff)->get('/reports')->assertOk();
+        $this->actingAs($staff)->get('/reports/research')->assertRedirect('/reports?tab=research');
+    }
+
+    public function test_any_user_can_view_and_update_own_profile(): void
+    {
+        $res = $this->makeUser('t.prof@x.test', 'Researcher');
+        $this->actingAs($res)->get('/profile')->assertOk();
+        $this->actingAs($res)->put('/profile', [
+            'first_name' => 'Updated', 'last_name' => 'Name', 'email' => 't.prof@x.test',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('users', ['email' => 't.prof@x.test', 'first_name' => 'Updated']);
+        auth()->logout();
+        $this->get('/profile')->assertRedirect('/login');
+    }
 }

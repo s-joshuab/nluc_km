@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CommercializationController;
@@ -11,8 +10,8 @@ use App\Http\Controllers\InnovationController;
 use App\Http\Controllers\KnowledgeResourceController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicationController;
-use App\Http\Controllers\QrController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResearchController;
 use App\Http\Controllers\ResearchFileController;
@@ -59,12 +58,6 @@ Route::middleware('auth')->group(function () {
     // Bookmarks
     Route::post('/bookmarks/toggle', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
 
-    // Access requests
-    Route::get('/access-requests', [AccessRequestController::class, 'index'])->name('access-requests.index');
-    Route::post('/access-requests', [AccessRequestController::class, 'store'])->name('access-requests.store');
-    Route::post('/access-requests/{accessRequest}/cancel', [AccessRequestController::class, 'cancel'])->name('access-requests.cancel');
-    Route::post('/access-requests/{accessRequest}/decide', [AccessRequestController::class, 'decide'])->name('access-requests.decide')->middleware('role:RPSU Administrator,RPSU Staff,Research & Publication Facilitator');
-
     // Endorsements + transactions
     Route::get('/endorsements', [EndorsementController::class, 'index'])->name('endorsements.index');
     Route::get('/endorsements/create', [EndorsementController::class, 'create'])->name('endorsements.create');
@@ -73,16 +66,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/endorsements/{endorsement}/status', [EndorsementController::class, 'updateStatus'])->name('endorsements.status')->middleware('role:RPSU Administrator,RPSU Staff,Research & Publication Facilitator');
     Route::get('/my-transactions', [EndorsementController::class, 'myTransactions'])->name('transactions.mine');
     Route::get('/my-transactions/{endorsement}', [EndorsementController::class, 'myShow'])->name('transactions.show');
+    Route::post('/endorsements/{endorsement}/documents', [EndorsementController::class, 'storeDocument'])->name('endorsements.documents.store');
+    Route::get('/endorsement-documents/{document}/download', [EndorsementController::class, 'downloadDocument'])->name('endorsements.documents.download');
+    Route::delete('/endorsement-documents/{document}', [EndorsementController::class, 'destroyDocument'])->name('endorsements.documents.destroy')->middleware('role:RPSU Administrator,RPSU Staff');
 
-    // QR queues — viewing allowed for relevant staff, store actions strictly validated
-    Route::get('/qr-received', [QrController::class, 'receivedQueue'])->name('qr.received.queue');
-    Route::post('/qr-received/{endorsement}', [QrController::class, 'storeReceived'])->name('qr.received.store');
-    Route::get('/qr-release', [QrController::class, 'releaseQueue'])->name('qr.release.queue');
-    Route::post('/qr-release/{endorsement}', [QrController::class, 'storeRelease'])->name('qr.release.store');
+    // Document tracking queues are covered by the Endorsements list + status filters
 
     // Publication & IEC
     Route::get('/publications', [PublicationController::class, 'index'])->name('publications.index');
+    Route::get('/my-publications', [PublicationController::class, 'mine'])->name('publications.mine');
     Route::get('/iec-materials', [IecMaterialController::class, 'index'])->name('iec.index');
+    Route::get('/my-iec-materials', [IecMaterialController::class, 'mine'])->name('iec.mine');
     Route::middleware('role:RPSU Administrator,RPSU Staff,Research & Publication Facilitator')->group(function () {
         Route::get('/publications/create', [PublicationController::class, 'create'])->name('publications.create');
         Route::post('/publications', [PublicationController::class, 'store'])->name('publications.store');
@@ -98,6 +92,7 @@ Route::middleware('auth')->group(function () {
 
     // Innovation / Technology / Commercialization
     Route::get('/innovations', [InnovationController::class, 'index'])->name('innovations.index');
+    Route::get('/my-innovations', [InnovationController::class, 'mine'])->name('innovations.mine');
     Route::get('/innovations/{innovation}', [InnovationController::class, 'show'])->name('innovations.show');
     Route::get('/technologies', [TechnologyController::class, 'index'])->name('technologies.index');
     Route::get('/commercialization', [CommercializationController::class, 'index'])->name('commercialization.index');
@@ -135,15 +130,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
 
-    // Reports
-    Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/research', [ReportController::class, 'research'])->name('research');
-        Route::get('/publications', [ReportController::class, 'publications'])->name('publications');
-        Route::get('/iec', [ReportController::class, 'iec'])->name('iec');
-        Route::get('/innovations', [ReportController::class, 'innovations'])->name('innovations');
-        Route::get('/commercialization', [ReportController::class, 'commercialization'])->name('commercialization');
-        Route::get('/endorsements', [ReportController::class, 'endorsements'])->name('endorsements');
-    });
+    // Profile (all logged-in users)
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Reports — single hub with tabs + filters
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    foreach (['research','publications','iec','innovations','commercialization','endorsements'] as $t) {
+        Route::redirect("/reports/{$t}", "/reports?tab={$t}", 301);
+    }
 
     // Admin
     Route::middleware('role:RPSU Administrator')->group(function () {

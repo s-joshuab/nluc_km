@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Research;
 use App\Models\Endorsement;
 use App\Models\EndorsementStatusHistory;
-use App\Models\EndorsementQrTransaction;
 use App\Models\AppNotification;
 use App\Models\ActivityLog;
 class SampleDataSeeder extends Seeder {
@@ -98,21 +97,14 @@ class SampleDataSeeder extends Seeder {
                 'access_level_id'=>$al,'version'=>'1.0','uploaded_by'=>$admin?->id,'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
-        // Endorsement workflow samples demonstrating QR flow
+        // Endorsement workflow samples (QR is manual at the Records Office — no QR records in system)
         $etype = DB::table('endorsement_types')->where('name','Research Document Endorsement')->value('id');
         $stg = fn($c)=>DB::table('workflow_stages')->where('code',$c)->value('id');
         $sts = fn($n)=>DB::table('workflow_statuses')->where('name',$n)->value('id');
-        $qrIn = DB::table('qr_transaction_types')->where('name','QR Received')->value('id');
-        $qrOut = DB::table('qr_transaction_types')->where('name','QR Release')->value('id');
-        // QR is manual at the records offices; RPSU staff encode the reference here.
-        // Seeded QR rows use the RPSU Staff account as the encoder.
-        $recorder = User::where('email','staff@nluc.dmmmsu.edu.ph')->first()
-            ?? User::where('email','admin@nluc.dmmmsu.edu.ph')->first();
-        $acadRecOffice = DB::table('offices')->where('code','ACAD-RECORDS')->value('id');
         $samples2 = [
-            ['track'=>'NLUC-END-2024-0001','research_code'=>'NLUC-2024-002','stage'=>'STAGE-ACAD-REC','status'=>'QR Received','withQr'=>true],
-            ['track'=>'NLUC-END-2024-0002','research_code'=>'NLUC-2024-001','stage'=>'STAGE-RPSU','status'=>'Under Processing','withQr'=>true],
-            ['track'=>'NLUC-END-2024-0003','research_code'=>'NLUC-2023-005','stage'=>'STAGE-ACAD','status'=>'Endorsed / Submitted','withQr'=>false],
+            ['track'=>'NLUC-END-2024-0001','research_code'=>'NLUC-2024-002','stage'=>'STAGE-RPSU','status'=>'Received by RPSU'],
+            ['track'=>'NLUC-END-2024-0002','research_code'=>'NLUC-2024-001','stage'=>'STAGE-RPSU','status'=>'Under Processing'],
+            ['track'=>'NLUC-END-2024-0003','research_code'=>'NLUC-2023-005','stage'=>'STAGE-ACAD','status'=>'Endorsed / Submitted'],
         ];
         foreach ($samples2 as $e) {
             $rr = Research::where('research_code',$e['research_code'])->first();
@@ -126,13 +118,6 @@ class SampleDataSeeder extends Seeder {
                 'previous_stage_id'=>null,'new_stage_id'=>$stg($e['stage']),'previous_status_id'=>null,
                 'changed_by'=>$researcher->id,'changed_at'=>now()->subDays(10),'remarks'=>'Initial submission',
             ]);
-            if ($e['withQr'] && $recorder && $qrIn) {
-                EndorsementQrTransaction::updateOrCreate(['endorsement_id'=>$end->id,'transaction_type_id'=>$qrIn],[
-                    'reference_number'=>'QR-RCV-'.substr($e['track'],-4),'transaction_date'=>now()->subDays(9)->toDateString(),
-                    'transaction_time'=>now()->subDays(9)->format('H:i:s'),'performed_by'=>$recorder->id,
-                    'office_id'=>$acadRecOffice,'remarks'=>'Seeded QR Received (encoded by RPSU staff)',
-                ]);
-            }
             ActivityLog::create(['user_id'=>$researcher->id,'action'=>'Created endorsement','module'=>'endorsements','record_type'=>'Endorsement','record_id'=>$end->id,'description'=>$e['track']]);
         }
     }

@@ -42,8 +42,6 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user ? $user->load(['roles','offices','college']) : null,
                 'roles' => $user ? $user->roles->pluck('name') : [],
                 'offices' => $user ? $user->offices->pluck('code') : [],
-                'canQrReceived' => $user ? $user->canDoQrReceived() : false,
-                'canQrRelease' => $user ? $user->canDoQrRelease() : false,
                 'isAdmin' => $user ? $user->isAdmin() : false,
             ],
             'flash' => [

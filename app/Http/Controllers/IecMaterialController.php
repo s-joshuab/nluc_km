@@ -15,6 +15,16 @@ class IecMaterialController extends Controller {
         return Inertia::render('IEC/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('iec_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }
+    public function mine() {
+        $u = auth()->id();
+        $q = IecMaterial::with(['research','type','status','college'])
+            ->where(fn($qq)=>$qq->where('created_by',$u)
+                ->orWhereHas('research', fn($r)=>$r->where('lead_researcher_id',$u)
+                    ->orWhereHas('researchers', fn($x)=>$x->where('users.id',$u))))
+            ->orderByDesc('id');
+        return Inertia::render('IEC/Index', ['rows'=>$q->paginate(15)->withQueryString(),'isMine'=>true,
+            'statuses'=>DB::table('iec_statuses')->get(),'filters'=>[]]);
+    }
     public function create() {
         return Inertia::render('IEC/Create', ['types'=>DB::table('iec_types')->get(),'statuses'=>DB::table('iec_statuses')->get(),
             'colleges'=>DB::table('colleges')->where('is_active',true)->get(),

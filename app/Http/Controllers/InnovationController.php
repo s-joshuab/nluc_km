@@ -14,6 +14,16 @@ class InnovationController extends Controller {
         return Inertia::render('Innovation/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('innovation_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }
+    public function mine() {
+        $u = auth()->id();
+        $q = Innovation::with(['research','type','status','college'])
+            ->where(fn($qq)=>$qq->where('created_by',$u)->orWhere('lead_innovator_id',$u)
+                ->orWhereHas('research', fn($r)=>$r->where('lead_researcher_id',$u)
+                    ->orWhereHas('researchers', fn($x)=>$x->where('users.id',$u))))
+            ->orderByDesc('id');
+        return Inertia::render('Innovation/Index', ['rows'=>$q->paginate(15)->withQueryString(),'isMine'=>true,
+            'statuses'=>DB::table('innovation_statuses')->get(),'filters'=>[]]);
+    }
     public function create() {
         return Inertia::render('Innovation/Create', ['types'=>DB::table('innovation_types')->get(),'statuses'=>DB::table('innovation_statuses')->get(),
             'colleges'=>DB::table('colleges')->get(),'ip'=>DB::table('ip_statuses')->get(),

@@ -40,15 +40,4 @@ class User extends Authenticatable {
     }
     public function isAdmin(): bool { return $this->hasRole('RPSU Administrator'); }
     public function isStaff(): bool { return $this->hasRole('RPSU Staff'); }
-    /**
-     * QR is done MANUALLY at the records offices (no system there).
-     * RPSU Staff / Administrator encode the QR reference here to update
-     * the paper's location. Offices remain as location tracking only.
-     */
-    public function canDoQrReceived(): bool {
-        return $this->hasAnyRole(['RPSU Administrator','RPSU Staff']);
-    }
-    public function canDoQrRelease(): bool {
-        return $this->hasAnyRole(['RPSU Administrator','RPSU Staff']);
-    }
 }

@@ -36,20 +36,20 @@ composer dev
 | Role | User type | Responsibilities |
 |---|---|---|
 | RPSU Administrator | Main system administrator | Manage users, facilitators, research records, files, access requests, metadata, publication/IEC/innovation records, system settings, and administrative functions. |
-| RPSU Staff | RPSU processing staff | Receive and process documents, update current file location and status, record QR information from the Records Office, maintain status history and remarks, and assist in research-related processing. |
+| RPSU Staff | RPSU processing staff | Receive and process documents, update current file location and status, maintain status history and remarks, and assist in research-related processing. |
 | Research & Publication Facilitator | College/area facilitator | Assist with research-related activities and facilitate processes within assigned scope. |
 | Researcher | Research user | Search research, view authorized files, request access, download permitted files, view own research, submit/track own endorsements, and monitor current file location. |
 
-Authorization is **role + office assignment**. QR stamping is manual at the records offices;
-RPSU Staff / Administrator encode the QR reference in the system. Researchers can only view
-statuses, never change them.
+Authorization is **role + office assignment**. QR stamping is done manually and saved at the
+Records Office itself (no system account there). RPSU Staff / Administrator update each paper's
+status and location here in the RPSU system. Researchers can only view statuses, never change them.
 
 ## Seeded Accounts (password: `password123` for all)
 
 | Email | Role | Office | Notes |
 |---|---|---|---|
 | `admin@nluc.dmmmsu.edu.ph` | RPSU Administrator | RPSU | Full admin |
-| `staff@nluc.dmmmsu.edu.ph` | RPSU Staff | RPSU | Updates file location / RPSU processing, QR transactions for assigned office, forwards to RECI |
+| `staff@nluc.dmmmsu.edu.ph` | RPSU Staff | RPSU | Updates file location / RPSU processing, forwards to RECI |
 | `facilitator@nluc.dmmmsu.edu.ph` | Research & Publication Facilitator | RPSU | Assists researchers |
 | `researcher@nluc.dmmmsu.edu.ph` | Researcher | — | Own research, transactions, bookmarks |
 
@@ -64,11 +64,17 @@ Full records and file downloads require login.
 
 ## Endorsement Workflow
 
-Academic Unit → Academic Unit – Records Office (**manual QR Received**, no system there) → RPSU (processing:
-Received by RPSU → Under Processing → For Review → For Release) → RPSU – Records Office
-(**manual QR Release**, no system there) → RECI Office – University (Forwarded / Endorsed to RECI → Completed / Closed).
+Researcher → Records Office (QR stamped + saved there manually, no system account) → RPSU (processing:
+Received by RPSU → Under Processing → For Review → For Release) → Records Office (physical release,
+QR saved there) → RECI Office – University (Forwarded / Endorsed to RECI → Completed / Closed).
 
-The system lives only in the research office (RPSU). RPSU Staff / Administrator encode the manual QR
-references here to update each paper's location and status. Offices/stages remain as location tracking.
+The system lives only in the research office (RPSU). RPSU Staff / Administrator update each paper's
+status and location here. Offices/stages remain as location tracking.
+
+Tracking numbers use the format `RPSU-YYYY-XXXXX` (e.g. `RPSU-2026-00001`).
+Current location is a normalized foreign key (`locations`: Researcher, Records Office,
+RPSU / Research Office, RECI Office – University). Every status/location change appends a
+status history row (with action taken) — never overwritten.
+Invalid jumps (e.g. Submitted → Completed) are rejected by the backend.
 
 Every status change writes a status history row, activity log, and notification inside a DB transaction.

@@ -99,6 +99,10 @@ class PublicController extends Controller
 
     public function catalog(Request $req)
     {
+        // Logged-in users get the full internal view (files + downloads)
+        if (auth()->check()) {
+            return redirect()->route('repository.index');
+        }
         $q = $this->baseQuery()->orderByDesc('id');
         if ($s = $req->get('search')) {
             $q->where(function ($qq) use ($s) {
@@ -133,6 +137,10 @@ class PublicController extends Controller
 
     public function show(Research $research)
     {
+        // Logged-in users get the full internal view (files + downloads)
+        if (auth()->check()) {
+            return redirect()->route('repository.show', $research->id);
+        }
         $item = $this->baseQuery()->findOrFail($research->id);
 
         $pubs = Publication::with(['type:id,name', 'status:id,name'])

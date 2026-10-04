@@ -17,8 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureHasRole::class,
             'office' => \App\Http\Middleware\EnsureInOffice::class,
-            'qr.received' => \App\Http\Middleware\EnsureQrReceived::class,
-            'qr.release' => \App\Http\Middleware\EnsureQrRelease::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

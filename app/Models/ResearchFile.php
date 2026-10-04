@@ -11,5 +11,4 @@ class ResearchFile extends Model {
     public function copyrightStatus() { return $this->belongsTo(CopyrightStatus::class); }
     public function usagePermission() { return $this->belongsTo(UsagePermission::class); }
     public function uploader() { return $this->belongsTo(User::class, 'uploaded_by'); }
-    public function accessRequests() { return $this->hasMany(AccessRequest::class, 'research_file_id'); }
 }

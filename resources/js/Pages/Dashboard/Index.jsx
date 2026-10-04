@@ -40,7 +40,7 @@ function BarRow({ label, value, max }) {
   );
 }
 
-export default function Index({ stats, byCollege, byStatus, byType, byYear, endorseByStatus, my, recentResearch, notifications, records, myRoles }) {
+export default function Index({ stats, byCollege, byStatus, byType, byYear, endorseByStatus, my, recentResearch, notifications, tracking, myRoles }) {
   const maxCollege = Math.max(...(byCollege || []).map(c => c.total), 1);
   const maxStatus  = Math.max(...(byStatus  || []).map(s => s.total), 1);
   const maxType    = Math.max(...(byType    || []).map(s => s.total), 1);
@@ -62,10 +62,10 @@ export default function Index({ stats, byCollege, byStatus, byType, byYear, endo
       <div className="mt-4 mb-2">
         <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Endorsement Workflow</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <DashboardCard label="Pending Endorsements" value={stats.pendingEndorsements} href="/endorsements" />
-          <DashboardCard label="QR Received"         value={stats.st_QRReceived ?? 0} />
+          <DashboardCard label="Newly Submitted" value={stats.newlySubmitted ?? 0} href="/endorsements" />
+          <DashboardCard label="Received by RPSU" value={stats.st_ReceivedbyRPSU ?? 0} />
           <DashboardCard label="Under Processing"    value={stats.st_UnderProcessing ?? 0} />
-          <DashboardCard label="QR Released"         value={stats.st_QRRelease ?? 0} />
+          <DashboardCard label="For Release"   value={stats.st_ForRelease ?? 0} />
           <DashboardCard label="Forwarded to RECI"   value={stats.st_ForwardedEndorsedtoRECI ?? 0} />
         </div>
       </div>
@@ -94,15 +94,18 @@ export default function Index({ stats, byCollege, byStatus, byType, byYear, endo
           <Stat label="Bookmarks"      value={my.bookmarks} color="text-blue-600" />
         </SectionCard>
 
-        {/* Records Office */}
+        {/* Document Tracking */}
         <SectionCard
-          title="Records Office Queues"
-          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-violet-600"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/></svg>}
+          title="Document Tracking"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-emerald-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
+          action={<Link href="/endorsements" className="text-xs text-emerald-600 hover:underline">All →</Link>}
         >
-          <Stat label="Awaiting QR Received" value={records.awaitingReceived} color="text-amber-600" />
-          <Stat label="QR Received Today"    value={records.receivedToday} color="text-emerald-700" />
-          <Stat label="Awaiting QR Release"  value={records.awaitingRelease} color="text-amber-600" />
-          <Stat label="QR Released Today"    value={records.releasedToday} color="text-emerald-700" />
+          <Stat label="Newly Submitted" value={tracking.newSubmitted} color="text-amber-600" />
+          <Stat label="Received by RPSU" value={tracking.received} color="text-emerald-700" />
+          <Stat label="Under Processing" value={tracking.processing} />
+          <Stat label="For Release" value={tracking.forRelease} color="text-amber-600" />
+          <Stat label="Forwarded to RECI" value={tracking.forwarded} />
+          <Stat label="Completed" value={tracking.completed} color="text-emerald-700" />
         </SectionCard>
 
         {/* Recent Research */}

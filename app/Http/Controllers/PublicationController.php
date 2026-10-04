@@ -15,6 +15,16 @@ class PublicationController extends Controller {
         return Inertia::render('Publications/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('publication_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }
+    public function mine() {
+        $u = auth()->id();
+        $q = Publication::with(['research','type','status'])
+            ->where(fn($qq)=>$qq->where('created_by',$u)
+                ->orWhereHas('research', fn($r)=>$r->where('lead_researcher_id',$u)
+                    ->orWhereHas('researchers', fn($x)=>$x->where('users.id',$u))))
+            ->orderByDesc('id');
+        return Inertia::render('Publications/Index', ['rows'=>$q->paginate(15)->withQueryString(),'isMine'=>true,
+            'statuses'=>DB::table('publication_statuses')->get(),'filters'=>[]]);
+    }
     public function create() {
         return Inertia::render('Publications/Create', ['types'=>DB::table('publication_types')->get(),
             'statuses'=>DB::table('publication_statuses')->get(),
