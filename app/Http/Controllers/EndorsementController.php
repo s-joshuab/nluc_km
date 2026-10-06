@@ -31,7 +31,8 @@ class EndorsementController extends Controller {
         return Inertia::render('Transactions/MyTransactions', ['rows'=>$q->paginate(15)->withQueryString()]);
     }
     public function myShow(Endorsement $endorsement) {
-        if ($endorsement->researcher_id !== auth()->id() && !auth()->user()->isAdmin() && !auth()->user()->hasAnyRole(['RPSU Staff','Research & Publication Facilitator'])) abort(403);
+        if ($endorsement->researcher_id !== auth()->id() && !auth()->user()->isAdmin() && !auth()->user()->isStaff()) abort(403);
+        if ($scope=auth()->user()->scopeCollegeId()) $this->assertInScope($endorsement, $scope);
         return $this->show($endorsement, 'Transactions/Show');
     }
     public function create() {
@@ -57,20 +58,30 @@ class EndorsementController extends Controller {
         $endorsement->load(['research','researcher','type','college','currentStage','currentStatus','currentLocation','creator','documents.uploader',
             'histories.newStage','histories.newStatus','histories.previousStage','histories.previousStatus','histories.previousLocation','histories.newLocation','histories.changer']);
         $u = auth()->user();
+        // Researchers see only their own; scoped facilitators only their college
+        if ($u->hasRole('Researcher') && !$u->isAdmin() && !$u->isStaff() && !$u->hasRole('Research & Publication Facilitator') && $endorsement->researcher_id !== $u->id) abort(403);
+        if ($scope=$u->scopeCollegeId()) $this->assertInScope($endorsement, $scope);
         return Inertia::render($page, ['item'=>$endorsement,
-            'canProcess'=>$u->hasAnyRole(['RPSU Administrator','RPSU Staff','Research & Publication Facilitator']),
+            'canProcess'=>$u->hasAnyRole(['RPSU Administrator','RPSU Staff']),
             'processingOptions'=>['Received by RPSU','Under Processing','For Review','For Release','Forwarded / Endorsed to RECI','Completed / Closed'],
             'flow'=>array_keys(EndorsementService::FLOW),
         ]);
     }
+    private function assertInScope(Endorsement $endorsement, int $scope): void {
+        $endorsement->loadMissing(['researcher','research']);
+        $inScope = (int)($endorsement->college_id ?? 0) === $scope
+            || (int)($endorsement->researcher?->college_id ?? 0) === $scope
+            || (int)($endorsement->research?->college_id ?? 0) === $scope;
+        if (!$inScope) abort(403, 'This transaction belongs to another college.');
+    }
     public function updateStatus(UpdateEndorsementStatusRequest $req, Endorsement $endorsement) {
         // Researchers cannot change statuses
-        if (auth()->user()->hasRole('Researcher') && !auth()->user()->isAdmin() && !auth()->user()->hasAnyRole(['RPSU Staff','Research & Publication Facilitator'])) abort(403, 'Researchers cannot change workflow statuses.');
+        if (auth()->user()->hasRole('Researcher') && !auth()->user()->isAdmin() && !auth()->user()->isStaff()) abort(403, 'Researchers cannot change workflow statuses.');
         EndorsementService::updateProcessing($endorsement, auth()->user(), $req->status, $req->remarks, $req->action_taken);
         return back()->with('success','Status updated to '.$req->status);
     }
     public function storeDocument(Request $req, Endorsement $endorsement) {
-        if (!auth()->user()->hasAnyRole(['RPSU Administrator','RPSU Staff','Research & Publication Facilitator']) && $endorsement->researcher_id !== auth()->id()) abort(403);
+        if (!auth()->user()->hasAnyRole(['RPSU Administrator','RPSU Staff']) && $endorsement->researcher_id !== auth()->id()) abort(403);
         $req->validate(['file'=>'required|file|max:20480','remarks'=>'nullable|string|max:1000']);
         $meta = FileStorageService::storeGeneric($req->file('file'), 'endorsements/'.$endorsement->tracking_number);
         $doc = EndorsementDocument::create(array_merge($meta, ['endorsement_id'=>$endorsement->id,'uploaded_by'=>auth()->id(),'remarks'=>$req->remarks]));
@@ -80,8 +91,9 @@ class EndorsementController extends Controller {
     public function downloadDocument(EndorsementDocument $document) {
         $end = $document->endorsement;
         $u = auth()->user();
-        $allowed = $u->isAdmin() || $u->hasAnyRole(['RPSU Staff','Research & Publication Facilitator']) || $end->researcher_id === $u->id;
+        $allowed = $u->isAdmin() || $u->isStaff() || $end->researcher_id === $u->id;
         if (!$allowed) abort(403, 'You do not have permission to download this document.');
+        if ($scope=$u->scopeCollegeId()) $this->assertInScope($end, $scope);
         if (!Storage::disk('local')->exists($document->storage_path)) abort(404, 'File missing on disk.');
         return Storage::disk('local')->download($document->storage_path, $document->original_name);
     }

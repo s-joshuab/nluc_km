@@ -9,9 +9,16 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class PublicationController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Researchers can only view their own publications.');
         $q = Publication::with(['research','type','status'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where(fn($qq)=>$qq->where('title','like',"%$s%")->orWhere('journal','like',"%$s%"));
         if ($v=$req->get('status_id')) $q->where('publication_status_id',$v);
+        // Facilitators only see publications of their college (via linked research or uploader)
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->where(fn($qq)=>$qq->whereHas('research', fn($r)=>$r->where('college_id',$scope))
+                ->orWhereHas('creator', fn($c)=>$c->where('college_id',$scope))
+                ->orWhere(fn($qq2)=>$qq2->whereNull('research_id')->whereNull('created_by')));
+        }
         return Inertia::render('Publications/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('publication_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }

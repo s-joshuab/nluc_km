@@ -52,7 +52,7 @@ export default function Create({ types, colleges, levels }) {
   };
 
   return (
-    <AuthenticatedLayout header="New Knowledge Resource">
+    <>
       <form onSubmit={submit} className="max-w-4xl space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -201,6 +201,9 @@ export default function Create({ types, colleges, levels }) {
           </button>
         </div>
       </form>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Create.layout = (page) => <AuthenticatedLayout header="New Knowledge Resource">{page}</AuthenticatedLayout>;

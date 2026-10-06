@@ -50,7 +50,7 @@ export default function Show({ user }) {
   const initials = `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`;
 
   return (
-    <AuthenticatedLayout header="My Profile">
+    <>
       <div className="max-w-5xl mx-auto space-y-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800">My Profile</h1>
@@ -142,6 +142,9 @@ export default function Show({ user }) {
           </div>
         </form>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Show.layout = (page) => <AuthenticatedLayout header="My Profile">{page}</AuthenticatedLayout>;

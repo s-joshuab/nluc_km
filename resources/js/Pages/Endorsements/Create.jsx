@@ -86,7 +86,7 @@ export default function Create({ types, colleges, researches }) {
   };
 
   return (
-    <AuthenticatedLayout header="New Research Endorsement">
+    <>
       <div className="max-w-4xl mx-auto space-y-4">
 
         <div className="flex items-center gap-3">
@@ -397,6 +397,9 @@ export default function Create({ types, colleges, researches }) {
 
         </form>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Create.layout = (page) => <AuthenticatedLayout header="New Research Endorsement">{page}</AuthenticatedLayout>;

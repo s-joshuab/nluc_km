@@ -69,7 +69,7 @@ export default function Create({ lookups }) {
     ));
 
   return (
-    <AuthenticatedLayout header="New Research">
+    <>
       <form onSubmit={submit} className="max-w-5xl mx-auto space-y-4">
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -323,6 +323,9 @@ export default function Create({ lookups }) {
           </button>
         </div>
       </form>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Create.layout = (page) => <AuthenticatedLayout header="New Research">{page}</AuthenticatedLayout>;

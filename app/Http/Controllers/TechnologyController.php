@@ -8,8 +8,14 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class TechnologyController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Technologies are managed by RPSU staff.');
         $q = Technology::with(['innovation','status'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where('title','like',"%$s%");
+        // Facilitators only see technologies under their college's innovations
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->whereHas('innovation', fn($i)=>$i->where(fn($qq)=>$qq->where('college_id',$scope)->orWhereNull('college_id')
+                ->orWhereHas('research', fn($r)=>$r->where('college_id',$scope))));
+        }
         return Inertia::render('Technology/Index', ['rows'=>$q->paginate(15)->withQueryString(),'filters'=>$req->only(['search'])]);
     }
     public function create() {

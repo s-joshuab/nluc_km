@@ -8,10 +8,10 @@ export default function Researchers({ rows, filters, colleges }) {
   const [f, setF] = useState(filters || {});
   const submit = (e) => {
     e?.preventDefault();
-    router.get('/researchers', f, { preserveState: true });
+    router.get('/researchers', f, { preserveState: true, preserveScroll: true, only: ['rows'] });
   };
   return (
-    <PublicLayout>
+    <>
       <div className="flex items-center justify-between mb-1">
         <div>
           <h1 className="text-xl font-bold text-slate-800">Researchers</h1>
@@ -88,6 +88,9 @@ export default function Researchers({ rows, filters, colleges }) {
         </div>
       )}
       <Pagination data={rows} />
-    </PublicLayout>
+    </>
   );
 }
+
+
+Researchers.layout = (page) => <PublicLayout>{page}</PublicLayout>;

@@ -5,7 +5,7 @@ import { Link } from '@inertiajs/react';
 
 export default function ResearcherShow({ profile, rows }) {
   return (
-    <PublicLayout>
+    <>
       <div className="text-xs text-slate-400">
         <Link href="/" className="hover:text-emerald-700 hover:underline transition-colors">Home</Link>
         {' / '}
@@ -74,6 +74,9 @@ export default function ResearcherShow({ profile, rows }) {
           />
         </div>
       )}
-    </PublicLayout>
+    </>
   );
 }
+
+
+ResearcherShow.layout = (page) => <PublicLayout>{page}</PublicLayout>;

@@ -1,5 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
+import { ContentSkeleton } from '../Components/Skeletons';
 
 function NavLink({ href, children }) {
   const url = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -21,6 +23,7 @@ function NavLink({ href, children }) {
 export default function PublicLayout({ children }) {
   const { auth } = usePage().props;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigating = useNavigationLoading();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -100,7 +103,10 @@ export default function PublicLayout({ children }) {
       </header>
 
       {/* ── CONTENT ──────────────────────────────────────────────────── */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 page-fade">{children}</main>
+      <main className="relative flex-1 w-full max-w-7xl mx-auto px-4 py-6 page-fade">
+        {children}
+        {navigating && <ContentSkeleton />}
+      </main>
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
       <footer className="bg-slate-900 text-slate-300 mt-12">

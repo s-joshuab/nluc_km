@@ -44,6 +44,15 @@ Authorization is **role + office assignment**. QR stamping is done manually and 
 Records Office itself (no system account there). RPSU Staff / Administrator update each paper's
 status and location here in the RPSU system. Researchers can only view statuses, never change them.
 
+**Facilitator scope:** facilitators are strictly limited to their assigned college — they only see
+and manage researchers, research, publications, IEC, innovations, technologies, commercialization,
+and knowledge resources of that college, and they have no access to Endorsements or Reports.
+
+**Researcher scope:** researchers only ever see their own records (My Research, My Transactions,
+My Publications, My IEC Materials, My Innovations, own dashboard). Global lists — Research
+Repository, Knowledge Resources, all Publications/IEC/Innovation/Technology/Commercialization
+lists, and global search — are blocked for pure researchers; other users are unaffected.
+
 ## Seeded Accounts (password: `password123` for all)
 
 | Email | Role | Office | Notes |

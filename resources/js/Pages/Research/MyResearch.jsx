@@ -6,7 +6,7 @@ import { Link } from '@inertiajs/react';
 
 export default function MyResearch({ rows }) {
   return (
-    <AuthenticatedLayout header="My Research">
+    <>
       <div className="space-y-4">
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -157,6 +157,9 @@ export default function MyResearch({ rows }) {
 
         <Pagination data={rows} />
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+MyResearch.layout = (page) => <AuthenticatedLayout header="My Research">{page}</AuthenticatedLayout>;

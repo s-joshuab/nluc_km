@@ -21,8 +21,14 @@ class ResearchFileController extends Controller {
         return back()->with('success','File archived.');
     }
     public function download(ResearchFile $file) {
-        // Any logged-in user may view/download files (no access requests).
-        // Guests are blocked by the auth middleware.
+        // Any logged-in user may view/download files (no access requests),
+        // except scoped facilitators (own college) and researchers (own research only).
+        if (($scope=auth()->user()->scopeCollegeId()) && (int)$file->research->college_id !== $scope) {
+            abort(403, 'This file belongs to another college.');
+        }
+        if (auth()->user()->isResearcherOnly() && !auth()->user()->ownsResearch((int)$file->research_id)) {
+            abort(403, 'You can only download your own research files.');
+        }
         ActivityLogService::log('Downloaded file','research-files','ResearchFile',$file->id,$file->original_name);
         if (!Storage::disk('local')->exists($file->storage_path)) abort(404, 'File missing on disk.');
         return Storage::disk('local')->download($file->storage_path, $file->original_name);

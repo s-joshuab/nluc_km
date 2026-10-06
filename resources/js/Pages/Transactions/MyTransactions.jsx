@@ -19,7 +19,7 @@ const Icons = {
 
 export default function MyTransactions({ rows }) {
   return (
-    <AuthenticatedLayout header="My Transactions">
+    <>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -104,6 +104,9 @@ export default function MyTransactions({ rows }) {
 
         <Pagination data={rows} />
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+MyTransactions.layout = (page) => <AuthenticatedLayout header="My Transactions">{page}</AuthenticatedLayout>;

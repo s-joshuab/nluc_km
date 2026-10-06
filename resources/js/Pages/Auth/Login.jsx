@@ -4,7 +4,7 @@ import { Link, useForm } from '@inertiajs/react';
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({ email: '', password: '', remember: false });
   return (
-    <GuestLayout>
+    <>
       <h1 className="text-xl font-bold text-slate-800 mb-1">Welcome back</h1>
       <p className="text-xs text-slate-400 mb-5">Sign in to access the knowledge management system.</p>
 
@@ -73,6 +73,9 @@ export default function Login() {
           ← Back to public site
         </Link>
       </div>
-    </GuestLayout>
+    </>
   );
 }
+
+
+Login.layout = (page) => <GuestLayout>{page}</GuestLayout>;

@@ -99,9 +99,12 @@ class PublicController extends Controller
 
     public function catalog(Request $req)
     {
-        // Logged-in users get the full internal view (files + downloads)
+        // Logged-in users get the full internal view (files + downloads);
+        // researchers go to My Research (own records only)
         if (auth()->check()) {
-            return redirect()->route('repository.index');
+            return auth()->user()->isResearcherOnly()
+                ? redirect()->route('research.mine')
+                : redirect()->route('repository.index');
         }
         $q = $this->baseQuery()->orderByDesc('id');
         if ($s = $req->get('search')) {
@@ -137,9 +140,12 @@ class PublicController extends Controller
 
     public function show(Research $research)
     {
-        // Logged-in users get the full internal view (files + downloads)
+        // Logged-in users get the full internal view (files + downloads);
+        // researchers go to My Research (own records only)
         if (auth()->check()) {
-            return redirect()->route('repository.show', $research->id);
+            return auth()->user()->isResearcherOnly()
+                ? redirect()->route('research.mine')
+                : redirect()->route('repository.show', $research->id);
         }
         $item = $this->baseQuery()->findOrFail($research->id);
 

@@ -8,9 +8,15 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class InnovationController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Researchers can only view their own innovations.');
         $q = Innovation::with(['research','type','status','college'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where('title','like',"%$s%");
         if ($v=$req->get('status_id')) $q->where('innovation_status_id',$v);
+        // Facilitators only see their college (+ shared records and linked research)
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->where(fn($qq)=>$qq->where('college_id',$scope)->orWhereNull('college_id')
+                ->orWhereHas('research', fn($r)=>$r->where('college_id',$scope)));
+        }
         return Inertia::render('Innovation/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('innovation_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }
@@ -38,6 +44,17 @@ class InnovationController extends Controller {
     }
     public function show(Innovation $innovation) {
         $innovation->load(['research','type','status','college','leadInnovator','technologies.status','technologies.commercializations.status']);
+        if (auth()->user()->isResearcherOnly()) {
+            $mine = ($innovation->research_id && auth()->user()->ownsResearch((int)$innovation->research_id))
+                || (int)($innovation->lead_innovator_id ?? 0) === auth()->id()
+                || (int)($innovation->created_by ?? 0) === auth()->id();
+            if (!$mine) abort(403, 'You can only view your own innovations.');
+        }
+        if (($scope=auth()->user()->scopeCollegeId())
+            && (int)($innovation->college_id ?? 0) !== $scope
+            && (int)($innovation->research?->college_id ?? 0) !== $scope) {
+            abort(403, 'This record belongs to another college.');
+        }
         return Inertia::render('Innovation/Show', ['item'=>$innovation]);
     }
     public function edit(Innovation $innovation) {

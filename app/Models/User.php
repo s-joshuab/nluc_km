@@ -40,4 +40,27 @@ class User extends Authenticatable {
     }
     public function isAdmin(): bool { return $this->hasRole('RPSU Administrator'); }
     public function isStaff(): bool { return $this->hasRole('RPSU Staff'); }
+    /**
+     * Facilitators are strictly scoped to their assigned college.
+     * Broader roles (admin/staff) always win over the facilitator scope.
+     */
+    public function isScopedFacilitator(): bool {
+        return $this->hasRole('Research & Publication Facilitator') && !$this->isAdmin() && !$this->isStaff();
+    }
+    public function scopeCollegeId(): ?int {
+        return $this->isScopedFacilitator() ? $this->college_id : null;
+    }
+    /**
+     * Pure researchers see only their own records — no global lists.
+     * Broader roles always win over the researcher restriction.
+     */
+    public function isResearcherOnly(): bool {
+        return $this->hasRole('Researcher') && !$this->isAdmin() && !$this->isStaff()
+            && !$this->hasRole('Research & Publication Facilitator');
+    }
+    public function ownsResearch(int $researchId): bool {
+        if ($this->isAdmin() || $this->isStaff()) return true;
+        return $this->ledResearches()->where('researches.id', $researchId)->exists()
+            || $this->researches()->where('researches.id', $researchId)->exists();
+    }
 }

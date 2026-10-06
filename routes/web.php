@@ -59,11 +59,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookmarks/toggle', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
 
     // Endorsements + transactions
-    Route::get('/endorsements', [EndorsementController::class, 'index'])->name('endorsements.index');
+    Route::get('/endorsements', [EndorsementController::class, 'index'])->name('endorsements.index')->middleware('role:RPSU Administrator,RPSU Staff');
     Route::get('/endorsements/create', [EndorsementController::class, 'create'])->name('endorsements.create');
     Route::post('/endorsements', [EndorsementController::class, 'store'])->name('endorsements.store');
     Route::get('/endorsements/{endorsement}', [EndorsementController::class, 'show'])->name('endorsements.show');
-    Route::post('/endorsements/{endorsement}/status', [EndorsementController::class, 'updateStatus'])->name('endorsements.status')->middleware('role:RPSU Administrator,RPSU Staff,Research & Publication Facilitator');
+    Route::post('/endorsements/{endorsement}/status', [EndorsementController::class, 'updateStatus'])->name('endorsements.status')->middleware('role:RPSU Administrator,RPSU Staff');
     Route::get('/my-transactions', [EndorsementController::class, 'myTransactions'])->name('transactions.mine');
     Route::get('/my-transactions/{endorsement}', [EndorsementController::class, 'myShow'])->name('transactions.show');
     Route::post('/endorsements/{endorsement}/documents', [EndorsementController::class, 'storeDocument'])->name('endorsements.documents.store');
@@ -135,7 +135,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Reports — single hub with tabs + filters
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware('role:RPSU Administrator,RPSU Staff');
     foreach (['research','publications','iec','innovations','commercialization','endorsements'] as $t) {
         Route::redirect("/reports/{$t}", "/reports?tab={$t}", 301);
     }

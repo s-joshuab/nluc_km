@@ -1,5 +1,7 @@
 ﻿import { Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
+import { ContentSkeleton } from '../Components/Skeletons';
 
 const icons = {
   dashboard: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
@@ -107,6 +109,7 @@ export default function AuthenticatedLayout({ header, children }) {
   const [sidebar, setSidebar] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
   const [administrationOpen, setAdministrationOpen] = useState(false);
+  const navigating = useNavigationLoading();
 
   const profileRef = useRef(null);
 
@@ -116,6 +119,8 @@ export default function AuthenticatedLayout({ header, children }) {
   const isStaff = roles.includes('RPSU Staff');
   const isResearcher = roles.includes('Researcher');
   const canRpsu = isAdmin || isFac || isStaff;
+  const canManage = isAdmin || isStaff;
+  const isResearcherOnly = isResearcher && !isAdmin && !isStaff && !isFac;
 
   const url = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -177,7 +182,6 @@ export default function AuthenticatedLayout({ header, children }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto pb-4 pt-2">
-          <div className="px-3 mt-2">
             <NavLink
               href="/dashboard"
               active={url === '/dashboard'}
@@ -186,46 +190,39 @@ export default function AuthenticatedLayout({ header, children }) {
             >
               Dashboard
             </NavLink>
-            <NavLink
-              href="/profile"
-              active={is('/profile')}
-              icon={icons.profile}
-              collapsed={!sidebar}
-            >
-              My Profile
-            </NavLink>
-          </div>
 
-          <NavSection title="Research" collapsed={!sidebar}>
-            <NavLink
-              href="/repository"
-              active={is('/repository')}
-              icon={icons.repository}
-              collapsed={!sidebar}
-            >
-              Research Repository
-            </NavLink>
-
-            {canRpsu && (
+          {!isResearcherOnly && (
+            <NavSection title="Research" collapsed={!sidebar}>
               <NavLink
-                href="/research"
-                active={url === '/research'}
-                icon={icons.records}
+                href="/repository"
+                active={is('/repository')}
+                icon={icons.repository}
                 collapsed={!sidebar}
               >
-                Research Records
+                Research Repository
               </NavLink>
-            )}
 
-            <NavLink
-              href="/knowledge-resources"
-              active={is('/knowledge-resources')}
-              icon={icons.knowledge}
-              collapsed={!sidebar}
-            >
-              Knowledge Resources
-            </NavLink>
-          </NavSection>
+              {canRpsu && (
+                <NavLink
+                  href="/research"
+                  active={url === '/research'}
+                  icon={icons.records}
+                  collapsed={!sidebar}
+                >
+                  Research Records
+                </NavLink>
+              )}
+
+              <NavLink
+                href="/knowledge-resources"
+                active={is('/knowledge-resources')}
+                icon={icons.knowledge}
+                collapsed={!sidebar}
+              >
+                Knowledge Resources
+              </NavLink>
+            </NavSection>
+          )}
 
           {isResearcher && (
             <NavSection title="My Workspace" collapsed={!sidebar}>
@@ -276,17 +273,20 @@ export default function AuthenticatedLayout({ header, children }) {
             </NavSection>
           )}
 
-          <NavSection title="Transactions" collapsed={!sidebar}>
-            <NavLink
-              href="/endorsements"
-              active={is('/endorsements')}
-              icon={icons.endorse}
-              collapsed={!sidebar}
-            >
-              Endorsements
-            </NavLink>
-          </NavSection>
+          {canManage && (
+            <NavSection title="Transactions" collapsed={!sidebar}>
+              <NavLink
+                href="/endorsements"
+                active={is('/endorsements')}
+                icon={icons.endorse}
+                collapsed={!sidebar}
+              >
+                Endorsements
+              </NavLink>
+            </NavSection>
+          )}
 
+          {!isResearcherOnly && (
           <NavSection title="Publication & IEC" collapsed={!sidebar}>
             <NavLink
               href="/publications"
@@ -306,7 +306,9 @@ export default function AuthenticatedLayout({ header, children }) {
               IEC Materials
             </NavLink>
           </NavSection>
+          )}
 
+          {!isResearcherOnly && (
           <NavSection title="Innovation" collapsed={!sidebar}>
             <NavLink
               href="/innovations"
@@ -335,17 +337,20 @@ export default function AuthenticatedLayout({ header, children }) {
               Commercialization
             </NavLink>
           </NavSection>
+          )}
 
-          <NavSection title="Reports" collapsed={!sidebar}>
-            <NavLink
-              href="/reports"
-              active={is('/reports')}
-              icon={icons.report}
-              collapsed={!sidebar}
-            >
-              Reports & Analytics
-            </NavLink>
-          </NavSection>
+          {canManage && (
+            <NavSection title="Reports" collapsed={!sidebar}>
+              <NavLink
+                href="/reports"
+                active={is('/reports')}
+                icon={icons.report}
+                collapsed={!sidebar}
+              >
+                Reports & Analytics
+              </NavLink>
+            </NavSection>
+          )}
         </nav>
 
         <div
@@ -518,24 +523,26 @@ export default function AuthenticatedLayout({ header, children }) {
             {header}
           </div>
 
-          <form action="/search" method="get" className="hidden md:flex items-center relative">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none"
-            >
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
+          {!isResearcherOnly && (
+            <form action="/search" method="get" className="hidden md:flex items-center relative">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none"
+              >
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
 
-            <input
-              name="q"
-              placeholder="Search…"
-              className="pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none w-48 transition-all"
-            />
-          </form>
+              <input
+                name="q"
+                placeholder="Search…"
+                className="pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none w-48 transition-all"
+              />
+            </form>
+          )}
 
           <Link
             href="/notifications"
@@ -549,13 +556,15 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
           </Link>
 
-          <Link
-            href="/catalog"
-            className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
-          >
-            {icons.globe}
-            <span>Public Site</span>
-          </Link>
+          {!isResearcherOnly && (
+            <Link
+              href="/catalog"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+            >
+              {icons.globe}
+              <span>Public Site</span>
+            </Link>
+          )}
         </header>
 
         {flash?.success && (
@@ -591,8 +600,9 @@ export default function AuthenticatedLayout({ header, children }) {
           </div>
         )}
 
-        <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full page-fade">
+        <main className="relative flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full page-fade">
           {children}
+          {navigating && <ContentSkeleton />}
         </main>
       </div>
     </div>

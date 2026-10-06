@@ -115,7 +115,7 @@ export default function Show({ item }) {
     : '';
 
   return (
-    <AuthenticatedLayout header={item.title}>
+    <>
       <div className="space-y-5">
 
         <Link
@@ -380,6 +380,9 @@ export default function Show({ item }) {
         </div>
 
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Show.layout = (page) => <AuthenticatedLayout header="Innovation Details">{page}</AuthenticatedLayout>;

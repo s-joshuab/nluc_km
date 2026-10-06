@@ -8,7 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class CommercializationController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Commercialization records are managed by RPSU staff.');
         $q = CommercializationRecord::with(['technology','status'])->orderByDesc('id');
+        // Facilitators only see records under their college's innovations
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->whereHas('technology.innovation', fn($i)=>$i->where(fn($qq)=>$qq->where('college_id',$scope)->orWhereNull('college_id')
+                ->orWhereHas('research', fn($r)=>$r->where('college_id',$scope))));
+        }
         return Inertia::render('Commercialization/Index', ['rows'=>$q->paginate(15)->withQueryString()]);
     }
     public function create() {

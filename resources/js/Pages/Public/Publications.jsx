@@ -9,10 +9,10 @@ export default function Publications({ rows, filters }) {
   const [f, setF] = useState(filters || {});
   const submit = (e) => {
     e?.preventDefault();
-    router.get('/showcase/publications', f, { preserveState: true });
+    router.get('/showcase/publications', f, { preserveState: true, preserveScroll: true, only: ['rows'] });
   };
   return (
-    <PublicLayout>
+    <>
       <div className="flex items-center justify-between mb-1">
         <div>
           <h1 className="text-xl font-bold text-slate-800">R&amp;E Publications Showcase</h1>
@@ -84,6 +84,9 @@ export default function Publications({ rows, filters }) {
         </div>
       )}
       <Pagination data={rows} />
-    </PublicLayout>
+    </>
   );
 }
+
+
+Publications.layout = (page) => <PublicLayout>{page}</PublicLayout>;

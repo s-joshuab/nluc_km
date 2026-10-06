@@ -102,11 +102,11 @@ const HEADERS = {
 
 export default function Index({ tab, rows, filters, lookups, counts }) {
   const [f, setF] = useState(filters || { tab });
-  const go = (patch) => router.get('/reports', { ...f, tab, ...patch }, { preserveState: true });
+  const go = (patch) => router.get('/reports', { ...f, tab, ...patch }, { preserveState: true, preserveScroll: true, only: ['rows'] });
   const switchTab = (t) => router.get('/reports', { tab: t }, { preserveState: false });
 
   return (
-    <AuthenticatedLayout header="Reports & Analytics">
+    <>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -226,6 +226,9 @@ export default function Index({ tab, rows, filters, lookups, counts }) {
 
         <div className="print:hidden"><Pagination data={rows} /></div>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Reports & Analytics">{page}</AuthenticatedLayout>;

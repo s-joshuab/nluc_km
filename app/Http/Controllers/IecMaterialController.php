@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class IecMaterialController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Researchers can only view their own IEC materials.');
         $q = IecMaterial::with(['research','type','status','college'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where('title','like',"%$s%");
         if ($v=$req->get('status_id')) $q->where('iec_status_id',$v);
+        // Facilitators only see their college (+ shared records and linked research)
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->where(fn($qq)=>$qq->where('college_id',$scope)->orWhereNull('college_id')
+                ->orWhereHas('research', fn($r)=>$r->where('college_id',$scope)));
+        }
         return Inertia::render('IEC/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'statuses'=>DB::table('iec_statuses')->get(),'filters'=>$req->only(['search','status_id'])]);
     }

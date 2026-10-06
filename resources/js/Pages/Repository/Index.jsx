@@ -331,9 +331,17 @@ export default function Index({
   rows,
   filters,
   lookups,
+  scopeCollege,
 }) {
 
-  const [f, setF] = useState(filters || {});
+  const [f, setF] = useState({
+    ...(filters || {}),
+    ...(scopeCollege ? { college_id: String(scopeCollege) } : {}),
+  });
+
+  const scopeCollegeName = scopeCollege
+    ? lookups?.colleges?.find((c) => String(c.id) === String(scopeCollege))
+    : null;
 
 
   /* =======================================================
@@ -385,6 +393,7 @@ export default function Index({
       {
         preserveState: true,
         preserveScroll: true,
+        only: ['rows'],
       }
     );
 
@@ -399,7 +408,7 @@ export default function Index({
 
     const empty = {
       search: '',
-      college_id: '',
+      college_id: scopeCollege ? String(scopeCollege) : '',
       research_type_id: '',
       research_status_id: '',
       researcher: '',
@@ -415,6 +424,7 @@ export default function Index({
       {
         preserveState: true,
         preserveScroll: true,
+        only: ['rows'],
       }
     );
 
@@ -422,7 +432,7 @@ export default function Index({
 
 
   return (
-    <AuthenticatedLayout header="Research Repository">
+    <>
 
       <div className="space-y-5">
 
@@ -675,6 +685,27 @@ export default function Index({
 
             <FilterField label="College">
 
+              {scopeCollege ? (
+                <div
+                  className="
+                    w-full
+                    h-9
+                    px-3
+                    rounded-lg
+                    border border-emerald-200
+                    bg-emerald-50
+                    text-xs
+                    font-semibold
+                    text-emerald-800
+                    flex
+                    items-center
+                    gap-1.5
+                  "
+                  title="Locked to your assigned college"
+                >
+                  🔒 {scopeCollegeName ? `${scopeCollegeName.code} — ${scopeCollegeName.name}` : 'My College'}
+                </div>
+              ) : (
               <select
                 value={f.college_id || ''}
                 onChange={(e) =>
@@ -710,6 +741,7 @@ export default function Index({
                 ))}
 
               </select>
+              )}
 
             </FilterField>
 
@@ -1097,6 +1129,9 @@ export default function Index({
 
       </div>
 
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Research Repository">{page}</AuthenticatedLayout>;

@@ -69,7 +69,8 @@ export default function Index({ rows, filters, statuses, statusCounts }) {
       },
       {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
+        only: ['rows', 'statusCounts']
       }
     );
   };
@@ -86,7 +87,8 @@ export default function Index({ rows, filters, statuses, statusCounts }) {
       },
       {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
+        only: ['rows', 'statusCounts']
       }
     );
   };
@@ -101,13 +103,14 @@ export default function Index({ rows, filters, statuses, statusCounts }) {
       },
       {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
+        only: ['rows', 'statusCounts']
       }
     );
   };
 
   return (
-    <AuthenticatedLayout header="Research Endorsements">
+    <>
       <div className="space-y-4">
 
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -417,6 +420,9 @@ export default function Index({ rows, filters, statuses, statusCounts }) {
 
         <Pagination data={rows} />
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Research Endorsements">{page}</AuthenticatedLayout>;

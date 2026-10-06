@@ -78,7 +78,7 @@ class EndorsementService {
 
     public static function updateProcessing(Endorsement $end, User $user, string $newStatusName, ?string $remarks = null, ?string $actionTaken = null): Endorsement {
         return DB::transaction(function () use ($end, $user, $newStatusName, $remarks, $actionTaken) {
-            if (!$user->hasAnyRole(['RPSU Administrator','RPSU Staff','Research & Publication Facilitator'])) abort(403, 'Only RPSU personnel can update processing status.');
+            if (!$user->hasAnyRole(['RPSU Administrator','RPSU Staff'])) abort(403, 'Only RPSU personnel can update processing status.');
             $from = $end->currentStatus?->name;
             static::assertTransition($from, $newStatusName);
             $statusId = WorkflowStatus::where('name',$newStatusName)->value('id');

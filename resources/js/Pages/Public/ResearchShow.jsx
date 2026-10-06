@@ -43,7 +43,7 @@ export default function ResearchShow({ item, pubs, iec, innovations }) {
   const hasOutputs = (pubs || []).length > 0 || (iec || []).length > 0 || (innovations || []).length > 0;
 
   return (
-    <PublicLayout>
+    <>
       <div className="text-xs text-slate-400">
         <Link href="/" className="hover:text-emerald-700 hover:underline transition-colors">Home</Link>
         {' / '}
@@ -143,6 +143,9 @@ export default function ResearchShow({ item, pubs, iec, innovations }) {
           )}
         </div>
       </div>
-    </PublicLayout>
+    </>
   );
 }
+
+
+ResearchShow.layout = (page) => <PublicLayout>{page}</PublicLayout>;

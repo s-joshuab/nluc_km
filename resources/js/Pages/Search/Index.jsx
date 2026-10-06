@@ -76,7 +76,7 @@ export default function Index({ q, results }) {
   ];
 
   return (
-    <AuthenticatedLayout header={`Search: ${q}`}>
+    <>
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -121,6 +121,9 @@ export default function Index({ q, results }) {
           </div>
         )}
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Search">{page}</AuthenticatedLayout>;

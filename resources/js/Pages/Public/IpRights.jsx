@@ -45,7 +45,7 @@ export default function IpRights({ rows, summary, copyrights }) {
   const maxCopyright = Math.max(...(copyrights || []).map((x) => x.total), 1);
 
   return (
-    <PublicLayout>
+    <>
       <div className="mb-1">
         <h1 className="text-xl font-bold text-slate-800">Intellectual Property &amp; Copyright</h1>
         <p className="text-sm text-slate-400 mt-0.5">
@@ -160,6 +160,9 @@ export default function IpRights({ rows, summary, copyrights }) {
           />
         </div>
       )}
-    </PublicLayout>
+    </>
   );
 }
+
+
+IpRights.layout = (page) => <PublicLayout>{page}</PublicLayout>;

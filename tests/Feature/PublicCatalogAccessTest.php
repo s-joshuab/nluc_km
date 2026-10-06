@@ -39,10 +39,19 @@ class PublicCatalogAccessTest extends TestCase
     {
         $id = DB::table('researches')->whereNull('deleted_at')->value('id');
         $this->assertNotNull($id);
-        $researcher = $this->makeUser('t.pub@x.test', 'Researcher');
-        $this->actingAs($researcher)->get('/catalog')->assertRedirect('/repository');
-        $this->actingAs($researcher)->get("/catalog/{$id}")->assertRedirect("/repository/{$id}");
+        $staff = $this->makeUser('t.pubstaff@x.test', 'RPSU Staff');
+        $this->actingAs($staff)->get('/catalog')->assertRedirect('/repository');
+        $this->actingAs($staff)->get("/catalog/{$id}")->assertRedirect("/repository/{$id}");
         // Full record renders with files for logged-in users
-        $this->actingAs($researcher)->get("/repository/{$id}")->assertOk();
+        $this->actingAs($staff)->get("/repository/{$id}")->assertOk();
+    }
+
+    public function test_researcher_is_redirected_to_my_research(): void
+    {
+        $id = DB::table('researches')->whereNull('deleted_at')->value('id');
+        $this->assertNotNull($id);
+        $researcher = $this->makeUser('t.pub@x.test', 'Researcher');
+        $this->actingAs($researcher)->get('/catalog')->assertRedirect('/my-research');
+        $this->actingAs($researcher)->get("/catalog/{$id}")->assertRedirect('/my-research');
     }
 }

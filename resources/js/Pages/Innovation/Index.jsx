@@ -26,7 +26,7 @@ const Icons = {
 
 export default function Index({ rows, isMine, statuses, filters }) {
   return (
-    <AuthenticatedLayout header={isMine ? 'My Innovations' : 'Innovations'}>
+    <>
       <div className="space-y-4">
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -189,6 +189,9 @@ export default function Index({ rows, isMine, statuses, filters }) {
 
         <Pagination data={rows} />
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Innovations">{page}</AuthenticatedLayout>;

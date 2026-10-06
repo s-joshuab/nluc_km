@@ -70,7 +70,7 @@ export default function Edit({ item, lookups }) {
     ));
 
   return (
-    <AuthenticatedLayout header={`Edit ${item.research_code}`}>
+    <>
       <form onSubmit={submit} className="max-w-5xl mx-auto space-y-4">
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -327,6 +327,9 @@ export default function Edit({ item, lookups }) {
           </button>
         </div>
       </form>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Edit.layout = (page) => <AuthenticatedLayout header="Edit Research">{page}</AuthenticatedLayout>;

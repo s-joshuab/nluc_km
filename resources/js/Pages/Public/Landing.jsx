@@ -62,7 +62,7 @@ export default function Landing({ stats, recent, pubs, topResearchers, ipHighlig
   ];
 
   return (
-    <PublicLayout>
+    <>
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="relative bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 rounded-2xl text-white p-8 md:p-12 shadow-xl overflow-hidden">
         {/* Decorative orbs */}
@@ -287,6 +287,9 @@ export default function Landing({ stats, recent, pubs, topResearchers, ipHighlig
           </div>
         </section>
       )}
-    </PublicLayout>
+    </>
   );
 }
+
+
+Landing.layout = (page) => <PublicLayout>{page}</PublicLayout>;

@@ -23,7 +23,7 @@ export default function Index({ rows }) {
   const read = items.length - unread;
 
   return (
-    <AuthenticatedLayout header="Notifications">
+    <>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -142,6 +142,9 @@ export default function Index({ rows }) {
 
         <Pagination data={rows} />
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Notifications">{page}</AuthenticatedLayout>;

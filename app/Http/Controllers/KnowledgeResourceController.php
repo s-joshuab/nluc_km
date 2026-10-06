@@ -9,9 +9,14 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class KnowledgeResourceController extends Controller {
     public function index(Request $req) {
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Knowledge Resources are managed by RPSU staff.');
         $q = KnowledgeResource::with(['type','college','accessLevel'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where(fn($qq)=>$qq->where('title','like',"%$s%")->orWhere('description','like',"%$s%"));
         if ($v=$req->get('resource_type_id')) $q->where('resource_type_id',$v);
+        // Facilitators only see their college + shared resources
+        if ($scope=auth()->user()->scopeCollegeId()) {
+            $q->where(fn($qq)=>$qq->where('college_id',$scope)->orWhereNull('college_id'));
+        }
         return Inertia::render('KnowledgeResources/Index', ['rows'=>$q->paginate(15)->withQueryString(),
             'types'=>DB::table('resource_types')->get(),'filters'=>$req->only(['search','resource_type_id'])]);
     }

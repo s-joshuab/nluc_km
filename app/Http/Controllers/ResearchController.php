@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 class ResearchController extends Controller {
     public function repository(Request $req) {
+        // Researchers use My Research — the global repository is not for them
+        if (auth()->user()->isResearcherOnly()) abort(403, 'Researchers can only view their own research.');
         $q = Research::with(['type','status','area','college','leadResearcher'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where(fn($qq)=>$qq->where('title','like',"%$s%")->orWhere('research_code','like',"%$s%")->orWhere('keywords','like',"%$s%")->orWhere('abstract','like',"%$s%"));
-        if ($v=$req->get('college_id')) $q->where('college_id',$v);
+        // Facilitators only ever see their own college (request filter is ignored for them)
+        if ($scope=auth()->user()->scopeCollegeId()) $q->where('college_id',$scope);
+        elseif ($v=$req->get('college_id')) $q->where('college_id',$v);
         if ($v=$req->get('research_type_id')) $q->where('research_type_id',$v);
         if ($v=$req->get('research_status_id')) $q->where('research_status_id',$v);
         if ($v=$req->get('research_area_id')) $q->where('research_area_id',$v);
@@ -20,13 +24,14 @@ class ResearchController extends Controller {
         if ($v=$req->get('researcher')) $q->whereHas('researchers', fn($qq)=>$qq->where('users.first_name','like',"%$v%")->orWhere('users.last_name','like',"%$v%"));
         $rows = $q->paginate(12)->withQueryString();
         return Inertia::render('Repository/Index', ['rows'=>$rows,'filters'=>$req->only(['search','college_id','research_type_id','research_status_id','research_area_id','sdg','year','researcher']),
-            'lookups'=>$this->lookups()]);
+            'lookups'=>$this->lookups(),'scopeCollege'=>auth()->user()->scopeCollegeId()]);
     }
     public function index(Request $req) {
         $this->authorize('create', Research::class);
         $q = Research::with(['type','status','college','leadResearcher'])->orderByDesc('id');
         if ($s=$req->get('search')) $q->where(fn($qq)=>$qq->where('title','like',"%$s%")->orWhere('research_code','like',"%$s%"));
-        if ($v=$req->get('college_id')) $q->where('college_id',$v);
+        if ($scope=auth()->user()->scopeCollegeId()) $q->where('college_id',$scope);
+        elseif ($v=$req->get('college_id')) $q->where('college_id',$v);
         if ($v=$req->get('research_status_id')) $q->where('research_status_id',$v);
         return Inertia::render('Research/Index', ['rows'=>$q->paginate(15)->withQueryString(),'filters'=>$req->only(['search','college_id','research_status_id']),'lookups'=>$this->lookups()]);
     }
@@ -43,6 +48,9 @@ class ResearchController extends Controller {
     }
     public function store(StoreResearchRequest $req) {
         $data = $req->validated();
+        if (($scope=auth()->user()->scopeCollegeId()) && (int)($data['college_id'] ?? 0) !== $scope) {
+            abort(403, 'Facilitators can only create research for their assigned college.');
+        }
         $team = $data['team'] ?? []; unset($data['team']);
         $data['created_by'] = auth()->id();
         $r = DB::transaction(function () use ($data, $team) {
@@ -58,6 +66,13 @@ class ResearchController extends Controller {
         return redirect()->route('research.show',$r->id)->with('success','Research created.');
     }
     public function show(Research $research) {
+        // Researchers open only their own research (via My Research links)
+        if (auth()->user()->isResearcherOnly() && !auth()->user()->ownsResearch($research->id)) {
+            abort(403, 'You can only view your own research.');
+        }
+        if (($scope=auth()->user()->scopeCollegeId()) && (int)$research->college_id !== $scope) {
+            abort(403, 'This research belongs to another college.');
+        }
         $research->load(['type','status','area','college','leadResearcher','ipStatus','team.user','team.role','files.fileType','files.accessLevel','files.copyrightStatus','files.usagePermission','publications.type','publications.status','iecMaterials.type','iecMaterials.status','innovations.type','innovations.status','innovations.technologies','endorsements.currentStage','endorsements.currentStatus','bookmarks']);
         $isBookmarked = $research->bookmarks()->where('user_id', auth()->id())->exists();
         return Inertia::render('Repository/Show', ['item'=>$research,'isBookmarked'=>$isBookmarked]);
@@ -68,7 +83,13 @@ class ResearchController extends Controller {
         return Inertia::render('Research/Edit', ['item'=>$research,'lookups'=>$this->lookups()]);
     }
     public function update(UpdateResearchRequest $req, Research $research) {
-        $research->update($req->validated());
+        $data = $req->validated();
+        if (($scope=auth()->user()->scopeCollegeId())) {
+            if ((int)$research->college_id !== $scope || (int)($data['college_id'] ?? $scope) !== $scope) {
+                abort(403, 'Facilitators can only manage research of their assigned college.');
+            }
+        }
+        $research->update($data);
         ActivityLogService::log('Updated research','research','Research',$research->id,$research->research_code);
         return redirect()->route('research.show',$research->id)->with('success','Research updated.');
     }

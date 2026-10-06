@@ -67,7 +67,7 @@ export default function Show({ item, canProcess, processingOptions, flow }) {
   };
 
   return (
-    <AuthenticatedLayout header={item.tracking_number}>
+    <>
       <div className="max-w-5xl mx-auto space-y-4">
         <div>
           <Link href="/endorsements" className="text-xs text-slate-400 hover:text-emerald-700 transition">
@@ -221,6 +221,9 @@ export default function Show({ item, canProcess, processingOptions, flow }) {
           <p className="text-[11px] text-slate-400">Only valid next steps from "{item.current_status?.name}" are accepted. History is appended, never overwritten.</p>
         </form>
       </Modal>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Show.layout = (page) => <AuthenticatedLayout header="Endorsement Details">{page}</AuthenticatedLayout>;

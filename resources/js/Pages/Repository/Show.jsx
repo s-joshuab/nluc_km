@@ -203,7 +203,7 @@ export default function Show({ item, isBookmarked }) {
   const endorsements = item.endorsements || [];
 
   return (
-    <AuthenticatedLayout header={`${item.research_code} — Details`}>
+    <>
 
       <div className="space-y-5">
 
@@ -783,6 +783,9 @@ export default function Show({ item, isBookmarked }) {
 
       </div>
 
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Show.layout = (page) => <AuthenticatedLayout header="Research Details">{page}</AuthenticatedLayout>;

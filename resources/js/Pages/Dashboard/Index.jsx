@@ -45,9 +45,51 @@ export default function Index({ stats, byCollege, byStatus, byType, byYear, endo
   const maxStatus  = Math.max(...(byStatus  || []).map(s => s.total), 1);
   const maxType    = Math.max(...(byType    || []).map(s => s.total), 1);
   const maxEndorse = Math.max(...(endorseByStatus || []).map(s => s.total), 1);
+  const isResearcherOnly = (myRoles || []).length === 1 && myRoles[0] === 'Researcher';
+
+  if (isResearcherOnly) {
+    return (
+      <>
+        <div className="grid md:grid-cols-2 gap-4">
+          <SectionCard
+            title="My Summary"
+            icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-emerald-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
+            action={<Link href="/my-research" className="text-xs text-emerald-600 hover:underline">View →</Link>}
+          >
+            <Stat label="My Research"    value={my.research} />
+            <Stat label="My Transactions" value={my.transactions} />
+            <Stat label="Pending"        value={my.pending} color="text-amber-600" />
+            <Stat label="Bookmarks"      value={my.bookmarks} color="text-blue-600" />
+          </SectionCard>
+
+          <SectionCard
+            title="My Recent Research"
+            icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-emerald-600"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+            action={<Link href="/my-research" className="text-xs text-emerald-600 hover:underline">All →</Link>}
+          >
+            <div className="space-y-2.5">
+              {recentResearch.map(r => (
+                <a key={r.id} href={`/repository/${r.id}`} className="flex items-start gap-2 group hover:bg-slate-50 -mx-1 px-1 py-0.5 rounded-lg transition-colors">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-700 truncate group-hover:text-emerald-700 transition-colors">{r.title}</div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-slate-400">{r.research_code}</span>
+                      <StatusBadge value={r.status} />
+                    </div>
+                  </div>
+                </a>
+              ))}
+              {recentResearch.length === 0 && <p className="text-xs text-slate-400">No research yet.</p>}
+            </div>
+          </SectionCard>
+        </div>
+      </>
+    );
+  }
 
   return (
-    <AuthenticatedLayout header="Dashboard">
+    <>
       {/* ── KPI CARDS ─────────────────────────────────────────────────── */}
       <div className="mb-2">
         <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Research Overview</h2>
@@ -161,6 +203,9 @@ export default function Index({ stats, byCollege, byStatus, byType, byYear, endo
           {endorseByStatus.map(s => <BarRow key={s.name} label={s.name} value={s.total} max={maxEndorse} />)}
         </SectionCard>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
+
+
+Index.layout = (page) => <AuthenticatedLayout header="Dashboard">{page}</AuthenticatedLayout>;

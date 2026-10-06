@@ -19,11 +19,11 @@ export default function Catalog({ rows, filters, types, colleges, years }) {
   const [f, setF] = useState(filters || {});
   const submit = (e) => {
     e?.preventDefault();
-    router.get('/catalog', f, { preserveState: true });
+    router.get('/catalog', f, { preserveState: true, preserveScroll: true, only: ['rows'] });
   };
 
   return (
-    <PublicLayout>
+    <>
       <div className="flex items-center justify-between mb-1">
         <div>
           <h1 className="text-xl font-bold text-slate-800">Research Catalog</h1>
@@ -122,6 +122,9 @@ export default function Catalog({ rows, filters, types, colleges, years }) {
       )}
 
       <Pagination data={rows} />
-    </PublicLayout>
+    </>
   );
 }
+
+
+Catalog.layout = (page) => <PublicLayout>{page}</PublicLayout>;
