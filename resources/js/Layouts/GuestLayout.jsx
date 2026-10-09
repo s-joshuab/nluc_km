@@ -1,33 +1,67 @@
+import { Link } from '@inertiajs/react';
+
+const capabilities = [
+  {
+    title: 'Research repository',
+    description: 'Find and manage campus research in one place.',
+  },
+  {
+    title: 'Endorsement tracking',
+    description: 'Follow documents through each stage of the RPSU process.',
+  },
+  {
+    title: 'Knowledge and innovation',
+    description: 'Connect publications, IEC materials, and innovation records.',
+  },
+];
+
 export default function GuestLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative blobs */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen lg:grid lg:grid-cols-2">
+      <main className="flex min-h-[70vh] items-center justify-center bg-white px-6 py-10 sm:px-10 lg:order-2 lg:min-h-screen lg:px-12">
+        <div className="w-full max-w-md">
+          <Link href="/" className="mb-10 flex items-center gap-3 lg:hidden" aria-label="DMMMSU-NLUC RPSU home">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-800 text-xs font-bold text-white">RPSU</span>
+            <span className="text-sm font-bold text-slate-900">DMMMSU-NLUC</span>
+          </Link>
+          {children}
+        </div>
+      </main>
 
-      <div className="w-full max-w-sm relative">
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          {/* Brand header */}
-          <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 px-6 py-6 text-center">
-            <div className="w-14 h-14 mx-auto bg-white/15 border border-white/20 rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-emerald-200">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-              </svg>
+      <aside className="bg-emerald-950 px-6 py-10 text-white sm:px-10 lg:order-1 lg:min-h-screen lg:px-12 lg:py-12 xl:px-16">
+        <div className="mx-auto flex h-full max-w-xl flex-col justify-between gap-12">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-700 bg-emerald-900 text-xs font-bold">RPSU</span>
+            <div className="leading-tight">
+              <p className="text-sm font-bold">DMMMSU-NLUC</p>
+              <p className="mt-1 text-xs text-emerald-100">Research and Publication Services Unit</p>
             </div>
-            <div className="font-bold text-white text-base tracking-tight">DMMMSU-NLUC RPSU</div>
-            <div className="text-xs text-emerald-200/80 mt-0.5">Knowledge Management System</div>
           </div>
-          {/* Content */}
-          <div className="px-6 py-6">{children}</div>
-        </div>
 
-        {/* Footer note */}
-        <div className="text-center mt-4 text-xs text-emerald-200/50">
-          Don Mariano Marcos Memorial State University — North La Union Campus
+          <div>
+            <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-200">Knowledge Management System</p>
+            <h2 className="max-w-lg text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+              Research knowledge, all in one place.
+            </h2>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-emerald-50">
+              A shared workspace for the North La Union Campus to organize research, track endorsements, and connect scholarly work with its outcomes.
+            </p>
+
+            <ul className="mt-10 space-y-5">
+              {capabilities.map((capability) => (
+                <li key={capability.title} className="border-l-2 border-emerald-500 pl-4">
+                  <p className="font-semibold text-white">{capability.title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-emerald-100">{capability.description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-xs leading-relaxed text-emerald-200">
+            Don Mariano Marcos Memorial State University — North La Union Campus
+          </p>
         </div>
-      </div>
+      </aside>
     </div>
   );
 }

@@ -1,85 +1,122 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigationLoading } from '../hooks/useNavigationLoading';
 import { ContentSkeleton } from '../Components/Skeletons';
 
-function NavLink({ href, children }) {
-  const url = typeof window !== 'undefined' ? window.location.pathname : '';
-  const active = url === href || (href !== '/' && url.startsWith(href));
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/catalog', label: 'Catalog' },
+  { href: '/researchers', label: 'Researchers' },
+  { href: '/showcase/publications', label: 'Publications' },
+  { href: '/showcase/ip-rights', label: 'IP & Copyright' },
+];
+
+function NavLink({ href, label, path, mobile = false, onClick }) {
+  const active = path === href || (href !== '/' && path.startsWith(`${href}/`));
   return (
     <Link
       href={href}
-      className={`px-3.5 py-2 text-sm rounded-lg font-medium transition-all duration-150
-        ${active
-          ? 'bg-emerald-700 text-white shadow-sm'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
-        }`}
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      className={`${mobile ? 'flex min-h-11 items-center rounded-lg px-4 py-3 text-base' : 'inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-2 text-sm'} font-medium transition-colors duration-150
+        ${active ? 'bg-emerald-50 text-emerald-900 font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
     >
-      {children}
+      {label}
     </Link>
   );
 }
 
 export default function PublicLayout({ children }) {
-  const { auth } = usePage().props;
+  const page = usePage();
+  const { auth } = page.props;
+  const path = page.url.split('?')[0];
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuButtonRef = useRef(null);
   const navigating = useNavigationLoading();
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [path]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    const handleDesktop = () => {
+      if (desktopQuery.matches) setMobileOpen(false);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    desktopQuery.addEventListener('change', handleDesktop);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      desktopQuery.removeEventListener('change', handleDesktop);
+    };
+  }, [mobileOpen]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* ── HEADER ───────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white shadow-sm">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 lg:gap-4">
           {/* Brand */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 bg-emerald-700 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="DMMMSU-NLUC RPSU home">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-800 text-xs font-bold text-white">
               RPSU
             </div>
-            <div className="hidden sm:block leading-tight">
-              <div className="font-bold text-sm text-emerald-800">DMMMSU-NLUC</div>
-              <div className="text-[10px] text-slate-400">Knowledge & Research Management</div>
+            <div className="hidden leading-tight sm:block">
+              <div className="text-sm font-bold text-slate-900">DMMMSU-NLUC</div>
+              <div className="text-[11px] text-slate-600">Knowledge & Research Management</div>
             </div>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-0.5 ml-4">
-            <NavLink href="/">Home</NavLink>
-            <NavLink href="/catalog">Research</NavLink>
-            <NavLink href="/researchers">Researchers</NavLink>
-            <NavLink href="/showcase/publications">Publications</NavLink>
-            <NavLink href="/showcase/ip-rights">IP & Copyright</NavLink>
+          <nav aria-label="Main navigation" className="ml-2 hidden items-center gap-0.5 lg:flex">
+            {navItems.map((item) => <NavLink key={item.href} {...item} path={path} />)}
           </nav>
 
           <div className="flex-1" />
 
           {/* Search */}
-          <form action="/catalog" method="get" className="hidden sm:flex items-center relative">
+          <form action="/catalog" method="get" role="search" className="relative hidden items-center lg:flex">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
               name="search"
+              type="search"
+              aria-label="Search research catalog"
               placeholder="Search research…"
-              className="pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none w-44 transition-all"
+              className="w-36 rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 xl:w-44"
             />
           </form>
 
           {/* CTA */}
           {auth?.user ? (
-            <Link href="/dashboard" className="text-sm px-4 py-2 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors">
+            <Link href="/dashboard" className="shrink-0 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
               Dashboard
             </Link>
           ) : (
-            <Link href="/login" className="text-sm px-4 py-2 bg-emerald-700 text-white rounded-lg font-medium hover:bg-emerald-800 transition-colors shadow-sm">
+            <Link href="/login" className="shrink-0 rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-900">
               Login
             </Link>
           )}
 
           {/* Mobile menu toggle */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100"
-            aria-label="Open menu"
+            ref={menuButtonRef}
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 lg:hidden"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            aria-controls="public-mobile-menu"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
               {mobileOpen
@@ -90,16 +127,29 @@ export default function PublicLayout({ children }) {
           </button>
         </div>
 
-        {/* Mobile nav drawer */}
-        {mobileOpen && (
-          <nav className="md:hidden border-t border-slate-100 px-4 py-2 flex flex-col gap-0.5 bg-white">
-            <NavLink href="/">Home</NavLink>
-            <NavLink href="/catalog">Research</NavLink>
-            <NavLink href="/researchers">Researchers</NavLink>
-            <NavLink href="/showcase/publications">Publications</NavLink>
-            <NavLink href="/showcase/ip-rights">IP & Copyright</NavLink>
-          </nav>
-        )}
+        {/* Mobile dropdown */}
+        <div id="public-mobile-menu" className={`${mobileOpen ? 'block' : 'hidden'} max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-slate-200 bg-white lg:hidden`}>
+          <div className="mx-auto max-w-7xl px-4 py-5">
+            <form action="/catalog" method="get" role="search" className="mb-5">
+              <label htmlFor="mobile-catalog-search" className="mb-2 block text-sm font-semibold text-slate-700">Search the catalog</label>
+              <div className="flex gap-2">
+                <input
+                  id="mobile-catalog-search"
+                  name="search"
+                  type="search"
+                  placeholder="Title, code, or keyword"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+                />
+                <button type="submit" className="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Search</button>
+              </div>
+            </form>
+            <nav aria-label="Mobile navigation" className="flex flex-col gap-1 border-t border-slate-100 pt-4">
+              {navItems.map((item) => (
+                <NavLink key={item.href} {...item} path={path} mobile onClick={() => setMobileOpen(false)} />
+              ))}
+            </nav>
+          </div>
+        </div>
       </header>
 
       {/* ── CONTENT ──────────────────────────────────────────────────── */}

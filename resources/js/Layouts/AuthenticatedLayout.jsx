@@ -5,8 +5,6 @@ import { ContentSkeleton } from '../Components/Skeletons';
 
 const icons = {
   dashboard: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-  profile: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-
   repository: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
 
   records: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
@@ -103,7 +101,7 @@ function NavLink({ href, active, icon, children, collapsed, badge }) {
   );
 }
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function AuthenticatedLayout({ header, children, wide = false }) {
   const { auth, unreadCount, flash } = usePage().props;
 
   const [sidebar, setSidebar] = useState(true);
@@ -600,7 +598,7 @@ export default function AuthenticatedLayout({ header, children }) {
           </div>
         )}
 
-        <main className="relative flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full page-fade">
+        <main className={`relative w-full flex-1 p-4 md:p-6 page-fade ${wide && isAdmin ? 'max-w-none' : 'max-w-7xl mx-auto'}`}>
           {children}
           {navigating && <ContentSkeleton />}
         </main>

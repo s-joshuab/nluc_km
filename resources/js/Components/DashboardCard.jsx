@@ -20,52 +20,46 @@ const cardIcons = {
 };
 
 const cardColors = {
-  'Total Research':          'from-emerald-500 to-emerald-600',
-  'Ongoing':                 'from-blue-500 to-blue-600',
-  'Completed':               'from-green-500 to-green-600',
-  'Published':               'from-teal-500 to-teal-600',
-  'Pending Endorsements':    'from-amber-500 to-amber-600',
-  'Newly Submitted':         'from-amber-500 to-amber-600',
-  'Received by RPSU':        'from-violet-500 to-violet-600',
-  'Under Processing':        'from-cyan-500 to-cyan-600',
-  'For Release':             'from-green-600 to-green-700',
-  'Forwarded to RECI':       'from-indigo-500 to-indigo-600',
-  'Completed / Closed':      'from-slate-500 to-slate-600',
-  'Publications':            'from-sky-500 to-sky-600',
-  'IEC Materials':           'from-orange-500 to-orange-600',
-  'Innovations':             'from-yellow-500 to-yellow-600',
-  'Commercialized':          'from-emerald-600 to-emerald-700',
-  'Pending Access Requests': 'from-red-500 to-red-600',
+  'Total Research':          'bg-emerald-50 text-emerald-700',
+  'Ongoing':                 'bg-sky-50 text-sky-700',
+  'Completed':               'bg-green-50 text-green-700',
+  'Published':               'bg-teal-50 text-teal-700',
+  'Pending Endorsements':    'bg-amber-50 text-amber-700',
+  'Newly Submitted':         'bg-amber-50 text-amber-700',
+  'Received by RPSU':        'bg-violet-50 text-violet-700',
+  'Under Processing':        'bg-cyan-50 text-cyan-700',
+  'For Release':             'bg-orange-50 text-orange-700',
+  'Forwarded to RECI':       'bg-indigo-50 text-indigo-700',
+  'Completed / Closed':      'bg-slate-100 text-slate-700',
+  'Publications':            'bg-sky-50 text-sky-700',
+  'IEC Materials':           'bg-orange-50 text-orange-700',
+  'Innovations':             'bg-violet-50 text-violet-700',
+  'Commercialized':          'bg-emerald-50 text-emerald-700',
+  'Pending Access Requests': 'bg-red-50 text-red-700',
 };
 
 export default function DashboardCard({ label, value, href }) {
   const icon = cardIcons[label] ?? (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
   );
-  const gradient = cardColors[label] ?? 'from-emerald-500 to-emerald-600';
+  const tone = cardColors[label] ?? 'bg-slate-100 text-slate-700';
 
   const inner = (
-    <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-all duration-200 group relative overflow-hidden">
-      {/* Colored accent bar */}
-      <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${gradient} rounded-t-xl`} />
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="text-2xl font-bold text-slate-800 leading-none">{value ?? 0}</div>
-          <div className="text-xs text-slate-500 mt-1.5 leading-snug">{label}</div>
-        </div>
-        <div className={`shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br ${gradient} text-white flex items-center justify-center shadow-sm`}>
+    <div className={`flex h-full min-h-44 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${href ? 'transition-all duration-150 group-hover:border-emerald-300 group-hover:shadow-md' : ''}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 text-base font-semibold leading-snug text-slate-800">{label}</div>
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`} aria-hidden="true">
           {icon}
         </div>
       </div>
-      {href && (
-        <div className="mt-3 text-[10px] text-emerald-600 font-semibold tracking-wide uppercase opacity-0 group-hover:opacity-100 transition-opacity">
-          View details →
-        </div>
-      )}
+      <div className="mt-6 flex items-end justify-between gap-2">
+        <div className="text-4xl font-bold leading-none tracking-tight text-slate-900">{value ?? 0}</div>
+        {href && <span className="whitespace-nowrap text-xs font-semibold text-emerald-700 group-hover:text-emerald-900">View →</span>}
+      </div>
     </div>
   );
 
   return href
-    ? <a href={href} className="block hover:-translate-y-0.5 transition-transform duration-200">{inner}</a>
+    ? <Link href={href} className="group block h-full">{inner}</Link>
     : inner;
 }

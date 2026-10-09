@@ -125,7 +125,7 @@ class PublicController extends Controller
             $q->whereYear('date_submitted', $v);
         }
 
-        $years = Research::selectRaw('DISTINCT YEAR(date_submitted) as y')
+        $years = Research::selectRaw('DISTINCT SUBSTR(date_submitted, 1, 4) as y')
             ->whereNotNull('date_submitted')
             ->orderByDesc('y')->pluck('y');
 
